@@ -12,10 +12,9 @@ import (
 )
 
 var (
-	DefaultConfiguration = NewConfiguration()
-	//默认的client
-	DefaultClient *mongo.Client
-	_cachedClient map[string]*mongo.Client = make(map[string]*mongo.Client)
+	DefaultConfiguration                          = NewConfiguration()
+	DefaultAlias                                  = "default"
+	_cachedClient        map[string]*mongo.Client = make(map[string]*mongo.Client)
 )
 
 // enable mongodb monitor
@@ -37,14 +36,13 @@ func EnableMongodbMonitor() func(*options.ClientOptions) {
 	}
 }
 
+func DefaultClient() *mongo.Client {
+	return _cachedClient[DefaultAlias]
+}
+
 // 构建默认的client
 func SetupDefaultClient(uri string, opts ...func(*options.ClientOptions)) (*mongo.Client, error) {
-	client, err := createClient(uri, opts...)
-	if err != nil {
-		return nil, err
-	}
-	DefaultClient = client
-	return DefaultClient, nil
+	return RegistClient(DefaultAlias, uri, opts...)
 }
 
 func RegistClient(key string, uri string, opts ...func(*options.ClientOptions)) (*mongo.Client, error) {

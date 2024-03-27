@@ -18,7 +18,7 @@ func GetDatabase(databaseName string, opts ...*options.DatabaseOptions) *mongo.D
 	if len(databaseName) <= 0 {
 		return nil
 	}
-	return DefaultClient.Database(databaseName, opts...)
+	return DefaultClient().Database(databaseName, opts...)
 }
 
 // get mongo.Database instance
