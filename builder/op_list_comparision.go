@@ -19,6 +19,8 @@ const (
 	op_comparison_ne string = "$ne"
 	//Matches none of the values specified in an array.
 	op_comparison_nin string = "$nin"
+
+	op_comparison_regex string = "$regex"
 )
 
 type Op struct {
