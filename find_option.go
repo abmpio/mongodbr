@@ -36,3 +36,17 @@ func FindOptionWithPage(pageIndex int64, pageSize int64) FindOption {
 		fo.SetSkip(pageSize * (pageIndex - 1))
 	}
 }
+
+// result with specified fields
+func FindOptionWithSpecifiedFields(fieldNameList []string) FindOption {
+	return func(fo *options.FindOptions) {
+		if len(fieldNameList) <= 0 {
+			return
+		}
+		projection := bson.M{}
+		for _, eachFieldName := range fieldNameList {
+			projection[eachFieldName] = 1
+		}
+		fo.SetProjection(projection)
+	}
+}
