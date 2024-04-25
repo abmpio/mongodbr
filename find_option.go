@@ -50,3 +50,24 @@ func FindOptionWithSpecifiedFields(fieldNameList []string) FindOption {
 		fo.SetProjection(projection)
 	}
 }
+
+func FindOptionWithFieldSort(fieldName string, isAsc bool) FindOption {
+	return func(fo *options.FindOptions) {
+		if fo.Sort == nil {
+			fo.Sort = bson.D{}
+		}
+		sortV, ok := fo.Sort.(bson.D)
+		if !ok {
+			return
+		}
+		sortValue := 1
+		if !isAsc {
+			sortValue = -1
+		}
+		sortV = append(sortV, bson.E{
+			Key:   fieldName,
+			Value: sortValue,
+		})
+		fo.SetSort(sortV)
+	}
+}
