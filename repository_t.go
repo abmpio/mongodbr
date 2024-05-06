@@ -8,9 +8,9 @@ import (
 )
 
 // find all t
-func FindAllT[T any](repository IRepository, opts ...FindOption) ([]T, error) {
+func FindAllT[T any](repository IRepository, opts ...FindOption) ([]*T, error) {
 	res := repository.FindAll()
-	list := make([]T, 0)
+	list := make([]*T, 0)
 	if err := res.All(&list); err != nil {
 		return nil, err
 	}
@@ -18,9 +18,9 @@ func FindAllT[T any](repository IRepository, opts ...FindOption) ([]T, error) {
 }
 
 // find t by filter
-func FindTByFilter[T any](repository IRepository, filter interface{}, opts ...FindOption) ([]T, error) {
+func FindTByFilter[T any](repository IRepository, filter interface{}, opts ...FindOption) ([]*T, error) {
 	res := repository.FindByFilter(filter, opts...)
-	list := make([]T, 0)
+	list := make([]*T, 0)
 	if err := res.All(&list); err != nil {
 		return nil, err
 	}

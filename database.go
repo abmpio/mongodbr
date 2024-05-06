@@ -12,10 +12,7 @@ import (
 
 // get mongo.Database instance
 func GetDatabase(databaseName string, opts ...*options.DatabaseOptions) *mongo.Database {
-	if DefaultClient == nil {
-		return nil
-	}
-	if len(databaseName) <= 0 {
+	if DefaultClient() == nil || len(databaseName) <= 0 {
 		return nil
 	}
 	return DefaultClient().Database(databaseName, opts...)
