@@ -20,19 +20,12 @@ var _ IEntityUpdate = (*MongoCol)(nil)
 // #region update members
 
 func (r *MongoCol) FindOneAndUpdate(entity IEntity, opts ...*options.FindOneAndUpdateOptions) error {
-	// if entity == nil {
-	// 	return fmt.Errorf("在更新%s数据时item参数不能为nil", r.documentName)
-	// }
-
 	objectId := entity.GetObjectId()
 	update := builder.NewBsonBuilder().NewOrUpdateSet(entity).ToValue()
 	return r.FindOneAndUpdateWithId(objectId, update, opts...)
 }
 
 func (r *MongoCol) FindOneAndUpdateWithId(objectId primitive.ObjectID, update interface{}, opts ...*options.FindOneAndUpdateOptions) error {
-	// if objectId.IsZero() {
-	// 	return fmt.Errorf("在保存%s数据时objectId不能为nil", r.documentName)
-	// }
 	//没有设置参数，使用默认的
 	ctx, cancel := CreateContext(r.configuration)
 	defer cancel()
