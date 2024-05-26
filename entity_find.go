@@ -81,12 +81,16 @@ func (r *MongoCol) FindByFilter(filter interface{}, opts ...FindOption) IFindRes
 
 	//设置默认搜索参数
 	findOptions := options.Find()
-	if r.configuration.setDefaultSort != nil {
-		r.configuration.setDefaultSort(findOptions)
-	}
 	for _, o := range opts {
 		o(findOptions)
 	}
+	if findOptions.Sort == nil {
+		// if sort is nil,then set default sort with configuration
+		if r.configuration.setDefaultSort != nil {
+			r.configuration.setDefaultSort(findOptions)
+		}
+	}
+
 	cur, err := r.collection.Find(ctx, filter, findOptions)
 	if err != nil {
 		return &findResult{
