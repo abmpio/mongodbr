@@ -61,7 +61,7 @@ func (r *findResult) All(val interface{}) (err error) {
 	ctx, cancel := CreateContext(r.configuration)
 	defer cancel()
 	if r.cur == nil {
-		return ErrNoCursor
+		return
 	}
 	if !r.cur.TryNext(ctx) {
 		return ctx.Err()
