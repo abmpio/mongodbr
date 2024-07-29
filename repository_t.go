@@ -40,6 +40,16 @@ func FindTByObjectId[T any](repository IRepository, id primitive.ObjectID) (*T, 
 	return result, nil
 }
 
+// find t by _id
+func FindTListByObjectIdList[T any](repository IRepository, idList []primitive.ObjectID) ([]*T, error) {
+	res := repository.FindListByObjectIdList(idList)
+	list := make([]*T, 0)
+	if err := res.All(&list); err != nil {
+		return nil, err
+	}
+	return list, nil
+}
+
 // find one by _id
 func FindOneTByFilter[T any](repository IRepository, filter interface{}, opts ...FindOneOption) (*T, error) {
 	res := repository.FindOne(filter, opts...)

@@ -13,6 +13,7 @@ type IEntityFind interface {
 	// find
 	FindAll(opts ...FindOption) IFindResult
 	FindByObjectId(id primitive.ObjectID, opts ...FindOneOption) IFindResult
+	FindListByObjectIdList(idList []primitive.ObjectID, opts ...FindOneOption) IFindResult
 	FindOne(filter interface{}, opts ...FindOneOption) IFindResult
 	FindByFilter(filter interface{}, opts ...FindOption) IFindResult
 
@@ -48,6 +49,14 @@ func (r *MongoCol) FindAll(opts ...FindOption) IFindResult {
 // 根据_id来查找，返回的是对象的指针
 func (r *MongoCol) FindByObjectId(id primitive.ObjectID, opts ...FindOneOption) IFindResult {
 	return r.FindOne(bson.M{"_id": id}, opts...)
+}
+
+// 根据_id列表来查找，返回的是对象的指针
+func (r *MongoCol) FindListByObjectIdList(idList []primitive.ObjectID, opts ...FindOneOption) IFindResult {
+	return r.FindOne(bson.M{"_id": bson.M{
+		"$in": idList,
+	},
+	}, opts...)
 }
 
 // 查找一条记录
