@@ -2,7 +2,10 @@ module github.com/abmpio/mongodbr
 
 go 1.19
 
-require go.mongodb.org/mongo-driver v1.11.0
+require (
+	github.com/satori/go.uuid v1.2.0
+	go.mongodb.org/mongo-driver v1.11.0
+)
 
 require (
 	github.com/golang/snappy v0.0.4 // indirect

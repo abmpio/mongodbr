@@ -195,11 +195,3 @@ func (r *RepositoryBase) onBeforeCreate(item interface{}) {
 	}
 	entityHookable.BeforeCreate()
 }
-
-// func (r *RepositoryBase) onBeforeUpdate(item interface{}) {
-// 	entityHookable, ok := item.(IEntityBeforeUpdate)
-// 	if !ok {
-// 		return
-// 	}
-// 	entityHookable.BeforeUpdate()
-// }

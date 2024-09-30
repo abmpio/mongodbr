@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/bsoncodec"
 	"go.mongodb.org/mongo-driver/event"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -15,6 +17,10 @@ var (
 	DefaultConfiguration                          = NewConfiguration()
 	DefaultAlias                                  = "default"
 	_cachedClient        map[string]*mongo.Client = make(map[string]*mongo.Client)
+	// 是否忽略uuid的自定义解码器
+	_ignoreUUIDDecoder = false
+	// 是否忽略time.Time的自定义解码器
+	_ignoreTimeDecoder = true
 )
 
 // enable mongodb monitor
@@ -34,6 +40,16 @@ func EnableMongodbMonitor() func(*options.ClientOptions) {
 
 		co.SetMonitor(monitor)
 	}
+}
+
+// 在创建Client时是否忽略uuid的自定义解码器
+func IgnoreUUIDDecoder(ignore bool) {
+	_ignoreTimeDecoder = ignore
+}
+
+// 在创建Client时是否忽略time.Time的自定义解码器,(primitive.DateTime -> time.Time)
+func IgnoreTimeDecoder(ignore bool) {
+	_ignoreTimeDecoder = ignore
 }
 
 func DefaultClient() *mongo.Client {
@@ -64,8 +80,29 @@ func GetClient(key string) *mongo.Client {
 }
 
 func createClient(uri string, opts ...func(*options.ClientOptions)) (*mongo.Client, error) {
+	registryBuilder := bson.NewRegistryBuilder()
+	var mongoRegistry *bsoncodec.Registry
+	continRegistry := false
+	if !_ignoreUUIDDecoder {
+		registryBuilder = registryBuilder.
+			RegisterTypeEncoder(_tUUID, bsoncodec.ValueEncoderFunc(uuidEncodeValue)).
+			RegisterTypeDecoder(_tUUID, bsoncodec.ValueDecoderFunc(uuidDecodeValue))
+		continRegistry = true
+	}
+	if !_ignoreTimeDecoder {
+		// registryBuilder = registryBuilder.
+		// 	RegisterTypeDecoder(reflect.TypeOf(time.Time{}), bsoncodec.ValueDecoderFunc(timeDecodeValue))
+		// continRegistry = true
+	}
+	if continRegistry {
+		mongoRegistry = registryBuilder.Build()
+	}
+
 	//测试能否连接
 	clientOptions := options.Client().ApplyURI(uri)
+	if continRegistry && mongoRegistry != nil {
+		clientOptions.SetRegistry(mongoRegistry)
+	}
 	for _, eachOpt := range opts {
 		eachOpt(clientOptions)
 	}
