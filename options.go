@@ -18,7 +18,7 @@ var (
 	DefaultAlias                                  = "default"
 	_cachedClient        map[string]*mongo.Client = make(map[string]*mongo.Client)
 	// 是否忽略uuid的自定义解码器
-	_ignoreUUIDDecoder = false
+	_ignoreUUIDDecoder = true
 	// 是否忽略time.Time的自定义解码器
 	_ignoreTimeDecoder = true
 )
