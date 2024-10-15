@@ -22,6 +22,10 @@ type CreationAuditedEntity struct {
 	CreatorId string `json:"creatorId,omitempty" bson:"creatorId"`
 }
 
+func (p *CreationAuditedEntity) SetUserCreator(userId string) {
+	p.CreatorId = userId
+}
+
 // #region ICreationAuditedEntity Members
 
 func (e *CreationAuditedEntity) GetCreatorId() string {
