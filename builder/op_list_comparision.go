@@ -77,3 +77,7 @@ func Op_Ne() *Op {
 func Op_Nin() *Op {
 	return _opList[op_comparison_nin]
 }
+
+func Op_Regex() *Op {
+	return _opList[op_comparison_regex]
+}
