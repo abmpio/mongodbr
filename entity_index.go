@@ -14,6 +14,7 @@ type IEntityIndex interface {
 	DeleteIndex(name string) (err error)
 	DeleteAllIndexes() (err error)
 	ListIndexes() (indexes []map[string]interface{}, err error)
+	ExistIndex(name string) (bool, error)
 }
 
 var _ IEntityIndex = (*MongoCol)(nil)
@@ -34,7 +35,24 @@ func (r *MongoCol) CreateIndexes(indexModelList []mongo.IndexModel, opts ...*opt
 	ctx, cancel := CreateContext(r.configuration)
 	defer cancel()
 
-	return r.collection.Indexes().CreateMany(ctx, indexModelList, opts...)
+	notExistList := make([]mongo.IndexModel, 0)
+	for _, eachIndexModel := range indexModelList {
+		if eachIndexModel.Options != nil && eachIndexModel.Options.Name != nil {
+			exist, err := r.ExistIndex(*eachIndexModel.Options.Name)
+			if err != nil {
+				return nil, err
+			}
+			if exist {
+				// exist ,continue
+				continue
+			}
+		}
+		notExistList = append(notExistList, eachIndexModel)
+	}
+	if len(notExistList) > 0 {
+		return r.collection.Indexes().CreateMany(ctx, indexModelList, opts...)
+	}
+	return []string{}, nil
 }
 
 func (r *MongoCol) MustCreateIndex(indexModel mongo.IndexModel, opts ...*options.CreateIndexesOptions) {
@@ -79,6 +97,20 @@ func (r *MongoCol) ListIndexes() (indexes []map[string]interface{}, err error) {
 		return nil, err
 	}
 	return indexes, nil
+}
+
+func (r *MongoCol) ExistIndex(name string) (bool, error) {
+	list, err := r.ListIndexes()
+	if err != nil {
+		return false, err
+	}
+	for _, eachIndex := range list {
+		indexName, ok := eachIndex["name"]
+		if ok && indexName == name {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 // #endregion
