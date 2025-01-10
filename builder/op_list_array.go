@@ -19,15 +19,6 @@ const (
 	op_array_elemMatch string = "$elemMatch"
 )
 
-func init() {
-	_opList[op_array_addToSet] = &Op{name: op_array_addToSet}
-	_opList[op_array_pop] = &Op{name: op_array_pop}
-	_opList[op_array_pull] = &Op{name: op_array_pull}
-	_opList[op_array_push] = &Op{name: op_array_push}
-	_opList[op_array_pullAll] = &Op{name: op_array_pullAll}
-	_opList[op_array_elemMatch] = &Op{name: op_array_elemMatch}
-}
-
 func Op_AddToSet() *Op {
 	return _opList[op_array_addToSet]
 }

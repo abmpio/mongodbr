@@ -13,13 +13,6 @@ const (
 	op_comparison_or string = "$or"
 )
 
-func init() {
-	_opList[op_comparison_and] = &Op{name: op_comparison_and}
-	_opList[op_comparison_not] = &Op{name: op_comparison_not}
-	_opList[op_comparison_nor] = &Op{name: op_comparison_nor}
-	_opList[op_comparison_or] = &Op{name: op_comparison_or}
-}
-
 func Op_And() *Op {
 	return _opList[op_comparison_and]
 }

@@ -9,11 +9,6 @@ const (
 	op_comparison_type string = "$type"
 )
 
-func init() {
-	_opList[op_comparison_exists] = &Op{name: op_comparison_exists}
-	_opList[op_comparison_type] = &Op{name: op_comparison_type}
-}
-
 func Op_Exists() *Op {
 	return _opList[op_comparison_exists]
 }

@@ -14,9 +14,10 @@ import (
 )
 
 var (
-	DefaultConfiguration                          = NewConfiguration()
-	DefaultAlias                                  = "default"
-	_cachedClient        map[string]*mongo.Client = make(map[string]*mongo.Client)
+	DefaultConfiguration                                   = NewConfiguration()
+	DefaultAlias                                           = "default"
+	_cachedClient        map[string]*mongo.Client          = make(map[string]*mongo.Client)
+	_cachedClientOptions map[string]*options.ClientOptions = make(map[string]*options.ClientOptions)
 	// 是否忽略uuid的自定义解码器
 	_ignoreUUIDDecoder = true
 	// 是否忽略time.Time的自定义解码器
@@ -56,17 +57,22 @@ func DefaultClient() *mongo.Client {
 	return _cachedClient[DefaultAlias]
 }
 
+func DefaultClientOptions() *options.ClientOptions {
+	return _cachedClientOptions[DefaultAlias]
+}
+
 // 构建默认的client
 func SetupDefaultClient(uri string, opts ...func(*options.ClientOptions)) (*mongo.Client, error) {
 	return RegistClient(DefaultAlias, uri, opts...)
 }
 
 func RegistClient(key string, uri string, opts ...func(*options.ClientOptions)) (*mongo.Client, error) {
-	client, err := createClient(uri, opts...)
+	client, clientOptions, err := createClient(uri, opts...)
 	if err != nil {
 		return nil, err
 	}
 	_cachedClient[key] = client
+	_cachedClientOptions[key] = options.MergeClientOptions(clientOptions)
 	return client, nil
 }
 
@@ -79,7 +85,16 @@ func GetClient(key string) *mongo.Client {
 	return client
 }
 
-func createClient(uri string, opts ...func(*options.ClientOptions)) (*mongo.Client, error) {
+// get client options by key
+func GetClientOptions(key string) *options.ClientOptions {
+	clientOptions, ok := _cachedClientOptions[key]
+	if !ok {
+		return nil
+	}
+	return clientOptions
+}
+
+func createClient(uri string, opts ...func(*options.ClientOptions)) (*mongo.Client, *options.ClientOptions, error) {
 	registryBuilder := bson.NewRegistryBuilder()
 	var mongoRegistry *bsoncodec.Registry
 	continRegistry := false
@@ -109,9 +124,9 @@ func createClient(uri string, opts ...func(*options.ClientOptions)) (*mongo.Clie
 
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
-		return nil, fmt.Errorf("无法初始化mongodb,在连接到mongodb时出现异常,异常信息:%s", err.Error())
+		return nil, nil, fmt.Errorf("无法初始化mongodb,在连接到mongodb时出现异常,异常信息:%s", err.Error())
 	}
-	return client, nil
+	return client, clientOptions, nil
 }
 
 type Configuration struct {

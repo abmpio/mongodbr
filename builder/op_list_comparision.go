@@ -35,18 +35,6 @@ var (
 	_opList = map[string]*Op{}
 )
 
-func init() {
-	_opList[op_comparison_eq] = &Op{name: op_comparison_eq}
-	_opList[op_comparison_gt] = &Op{name: op_comparison_gt}
-	_opList[op_comparison_gte] = &Op{name: op_comparison_gte}
-	_opList[op_comparison_in] = &Op{name: op_comparison_in}
-	_opList[op_comparison_lt] = &Op{name: op_comparison_lt}
-	_opList[op_comparison_lte] = &Op{name: op_comparison_lte}
-	_opList[op_comparison_ne] = &Op{name: op_comparison_ne}
-	_opList[op_comparison_nin] = &Op{name: op_comparison_nin}
-	_opList[op_comparison_regex] = &Op{name: op_comparison_regex}
-}
-
 func Op_Eq() *Op {
 	return _opList[op_comparison_eq]
 }
