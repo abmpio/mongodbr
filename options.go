@@ -67,7 +67,7 @@ func SetupDefaultClient(uri string, opts ...func(*options.ClientOptions)) (*mong
 }
 
 func RegistClient(key string, uri string, opts ...func(*options.ClientOptions)) (*mongo.Client, error) {
-	client, clientOptions, err := createClient(uri, opts...)
+	client, clientOptions, err := CreateClient(uri, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func GetClientOptions(key string) *options.ClientOptions {
 	return clientOptions
 }
 
-func createClient(uri string, opts ...func(*options.ClientOptions)) (*mongo.Client, *options.ClientOptions, error) {
+func CreateClient(uri string, opts ...func(*options.ClientOptions)) (*mongo.Client, *options.ClientOptions, error) {
 	registryBuilder := bson.NewRegistryBuilder()
 	var mongoRegistry *bsoncodec.Registry
 	continRegistry := false
