@@ -31,7 +31,7 @@ func (entity *Entity) BeforeCreate() {
 	}
 }
 
-func (entity *Entity) GetObjectId() primitive.ObjectID {
+func (entity Entity) GetObjectId() primitive.ObjectID {
 	return entity.ObjectId
 }
 
