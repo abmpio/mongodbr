@@ -7,29 +7,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// find all t
-func FindAllT[T any](repository IRepository, opts ...FindOption) ([]*T, error) {
-	res := repository.FindAll()
-	list := make([]*T, 0)
-	if err := res.All(&list); err != nil {
-		return nil, err
-	}
-	return list, nil
-}
-
-// find t by filter
-func FindTByFilter[T any](repository IRepository, filter interface{}, opts ...FindOption) ([]*T, error) {
-	res := repository.FindByFilter(filter, opts...)
-	list := make([]*T, 0)
-	if err := res.All(&list); err != nil {
-		return nil, err
-	}
-	return list, nil
-}
-
-// find t by _id
-func FindTByObjectId[T any](repository IRepository, id primitive.ObjectID) (*T, error) {
-	res := repository.FindByObjectId(id)
+// find one T by _id
+func FindTByObjectId[T any](repository IRepository, id primitive.ObjectID, opts ...FindOneOption) (*T, error) {
+	res := repository.FindByObjectId(id, opts...)
 	result := new(T)
 	if err := res.One(result); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -40,17 +20,8 @@ func FindTByObjectId[T any](repository IRepository, id primitive.ObjectID) (*T, 
 	return result, nil
 }
 
-// find t by _id
-func FindTListByObjectIdList[T any](repository IRepository, idList []primitive.ObjectID) ([]*T, error) {
-	res := repository.FindListByObjectIdList(idList)
-	list := make([]*T, 0)
-	if err := res.All(&list); err != nil {
-		return nil, err
-	}
-	return list, nil
-}
-
-// find one by _id
+// find one T by filter
+// filter: filter
 func FindOneTByFilter[T any](repository IRepository, filter interface{}, opts ...FindOneOption) (*T, error) {
 	res := repository.FindOne(filter, opts...)
 	result := new(T)
@@ -61,4 +32,34 @@ func FindOneTByFilter[T any](repository IRepository, filter interface{}, opts ..
 		return nil, err
 	}
 	return result, nil
+}
+
+// find all t
+func FindAllT[T any](repository IRepository, opts ...FindOption) ([]*T, error) {
+	res := repository.FindAll()
+	list := make([]*T, 0)
+	if err := res.All(&list); err != nil {
+		return nil, err
+	}
+	return list, nil
+}
+
+// find list T by filter
+func FindTByFilter[T any](repository IRepository, filter interface{}, opts ...FindOption) ([]*T, error) {
+	res := repository.FindByFilter(filter, opts...)
+	list := make([]*T, 0)
+	if err := res.All(&list); err != nil {
+		return nil, err
+	}
+	return list, nil
+}
+
+// find list T by _id list
+func FindTListByObjectIdList[T any](repository IRepository, idList []primitive.ObjectID) ([]*T, error) {
+	res := repository.FindListByObjectIdList(idList)
+	list := make([]*T, 0)
+	if err := res.All(&list); err != nil {
+		return nil, err
+	}
+	return list, nil
 }
