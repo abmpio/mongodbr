@@ -7,6 +7,15 @@ import (
 
 type ConvertPrimitiveDToMapOptions struct {
 	ConvertPrimitiveAToMap bool
+	ConvertPrimitiveDToMap bool
+}
+
+func _bsonDToMap(d primitive.D) map[string]interface{} {
+	m := make(map[string]interface{})
+	for _, elem := range d {
+		m[elem.Key] = elem.Value
+	}
+	return m
 }
 
 // bsonDToMap 将 bson.D 转换为 map[string]interface{}
@@ -19,10 +28,16 @@ func bsonDToMap(d primitive.D, opts ...ConvertPrimitiveDToMapOptions) map[string
 	for _, elem := range d {
 		elemValue := elem.Value
 		if options.ConvertPrimitiveAToMap {
-			array, ok := elemValue.(primitive.A)
+			array, ok := elem.Value.(primitive.A)
 			if ok {
 				// 将其转换为map[string]interface{}
 				elemValue = ConvertPrimitiveAToMap(array)
+			}
+		}
+		if options.ConvertPrimitiveDToMap {
+			dValue, ok := elem.Value.(primitive.D)
+			if ok {
+				elemValue = _bsonDToMap(dValue)
 			}
 		}
 		m[elem.Key] = elemValue
