@@ -64,6 +64,5 @@ func Ping(client *mongo.Client) error {
 	if err != nil {
 		return fmt.Errorf("mongodb ping测试时出现异常,异常信息:%s", err.Error())
 	}
-	fmt.Println("mongodb ping测试正常")
 	return nil
 }
