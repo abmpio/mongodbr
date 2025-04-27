@@ -37,7 +37,7 @@ func (r *MongoCol) FindOneAndUpdateWithId(objectId primitive.ObjectID, update in
 		eachOpt(mongodbrUOptions)
 	}
 	// handle context
-	ctx, cancel := CreateContextWith(r.configuration, mongodbrUOptions.WithCtx)
+	ctx, cancel := CreateContextAndCancelWith(r.configuration, mongodbrUOptions.WithCtx)
 	defer cancel()
 
 	if err := r.collection.FindOneAndUpdate(
@@ -61,7 +61,7 @@ func (r *MongoCol) UpdateOne(filter interface{}, update interface{}, opts ...Mon
 		eachOpt(uOptions)
 	}
 	// handle context
-	ctx, cancel := CreateContextWith(r.configuration, uOptions.WithCtx)
+	ctx, cancel := CreateContextAndCancelWith(r.configuration, uOptions.WithCtx)
 	defer cancel()
 
 	_, err := r.collection.UpdateOne(ctx, filter, update, uOptions.UpdateOptions)
@@ -81,7 +81,7 @@ func (r *MongoCol) UpdateMany(filter interface{}, update interface{}, opts ...Mo
 		eachOpt(uOptions)
 	}
 	// handle context
-	ctx, cancel := CreateContextWith(r.configuration, uOptions.WithCtx)
+	ctx, cancel := CreateContextAndCancelWith(r.configuration, uOptions.WithCtx)
 	defer cancel()
 
 	result, err := r.collection.UpdateMany(ctx, filter, update, uOptions.UpdateOptions)

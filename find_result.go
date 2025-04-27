@@ -39,8 +39,14 @@ func (r *findResult) One(val interface{}) (err error) {
 	}
 
 	//没有设置参数，使用默认的
-	ctx, cancel := CreateContextWith(r.configuration, r.GetContext())
-	defer cancel()
+	var ctx context.Context
+	var cancel context.CancelFunc
+	if r.GetContext() == nil {
+		ctx, cancel = CreateContextAndCancel(r.configuration)
+		defer cancel()
+	} else {
+		ctx = r.GetContext()
+	}
 
 	if !r.cur.TryNext(ctx) {
 		return mongo.ErrNoDocuments
@@ -63,8 +69,14 @@ func (r *findResult) All(val interface{}) (err error) {
 	}
 
 	//没有设置参数，使用默认的
-	ctx, cancel := CreateContextWith(r.configuration, r.GetContext())
-	defer cancel()
+	var ctx context.Context
+	var cancel context.CancelFunc
+	if r.GetContext() == nil {
+		ctx, cancel = CreateContextAndCancel(r.configuration)
+		defer cancel()
+	} else {
+		ctx = r.GetContext()
+	}
 
 	if r.cur == nil {
 		return
@@ -84,8 +96,14 @@ func (r *findResult) ToAll() ([]interface{}, error) {
 	}
 
 	//没有设置参数，使用默认的
-	ctx, cancel := CreateContextWith(r.configuration, r.GetContext())
-	defer cancel()
+	var ctx context.Context
+	var cancel context.CancelFunc
+	if r.GetContext() == nil {
+		ctx, cancel = CreateContextAndCancel(r.configuration)
+		defer cancel()
+	} else {
+		ctx = r.GetContext()
+	}
 
 	var result []interface{}
 	for r.cur.Next(ctx) {

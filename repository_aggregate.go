@@ -10,7 +10,7 @@ func (r *RepositoryBase) Aggregate(pipeline interface{}, dataList interface{}, o
 	for _, o := range opts {
 		o(aOptions)
 	}
-	ctx, cancel := CreateContextWith(r.configuration, aOptions.WithCtx)
+	ctx, cancel := CreateContextAndCancelWith(r.configuration, aOptions.WithCtx)
 	defer cancel()
 
 	cur, err := r.collection.Aggregate(ctx, pipeline, aOptions.AggregateOptions)

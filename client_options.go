@@ -69,7 +69,7 @@ type Configuration struct {
 	setDefaultSort func(*options.FindOptions) *options.FindOptions
 }
 
-func CreateContext(c *Configuration) (context.Context, context.CancelFunc) {
+func CreateContextAndCancel(c *Configuration) (context.Context, context.CancelFunc) {
 	if c == nil || c.QueryTimeout <= 0 {
 		ctx := context.TODO()
 		return context.WithCancel(ctx)
@@ -78,9 +78,9 @@ func CreateContext(c *Configuration) (context.Context, context.CancelFunc) {
 }
 
 // 使用parent的context来创建一个context
-func CreateContextWith(c *Configuration, ctx context.Context) (context.Context, context.CancelFunc) {
+func CreateContextAndCancelWith(c *Configuration, ctx context.Context) (context.Context, context.CancelFunc) {
 	if ctx == nil {
-		return CreateContext(c)
+		return CreateContextAndCancel(c)
 	}
 	// 包含了ctx
 	if c == nil || c.QueryTimeout <= 0 {
@@ -88,6 +88,18 @@ func CreateContextWith(c *Configuration, ctx context.Context) (context.Context, 
 	}
 	return context.WithTimeout(ctx, c.QueryTimeout)
 }
+
+// // 使用parent的context来创建一个context
+// func CreateContextWith(c *Configuration, ctx context.Context) (context.Context, context.CancelFunc) {
+// 	if ctx == nil {
+// 		return CreateContext(c)
+// 	}
+// 	// 包含了ctx
+// 	if c == nil || c.QueryTimeout <= 0 {
+// 		return context.WithCancel(ctx)
+// 	}
+// 	return context.WithTimeout(ctx, c.QueryTimeout)
+// }
 
 func (c *Configuration) safeCreateItem() interface{} {
 	if c.createItemFunc == nil {

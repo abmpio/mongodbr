@@ -78,7 +78,7 @@ func (c *MongoCol) BulkWrite(models []mongo.WriteModel, opts ...MongodbrBulkWrit
 	for _, o := range opts {
 		o(bulkWriteOptions)
 	}
-	ctx, cancel := CreateContextWith(c.configuration, bulkWriteOptions.WithCtx)
+	ctx, cancel := CreateContextAndCancelWith(c.configuration, bulkWriteOptions.WithCtx)
 	defer cancel()
 
 	res, err := c.collection.BulkWrite(

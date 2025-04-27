@@ -69,7 +69,7 @@ func (r *RepositoryBase) Create(item interface{}, opts ...MongodbrInsertOneOptio
 	for _, o := range opts {
 		o(insertOneOptions)
 	}
-	ctx, cancel := CreateContextWith(r.configuration, insertOneOptions.WithCtx)
+	ctx, cancel := CreateContextAndCancelWith(r.configuration, insertOneOptions.WithCtx)
 	defer cancel()
 
 	r.onBeforeCreate(item)
@@ -94,7 +94,7 @@ func (r *RepositoryBase) CreateMany(itemList []interface{}, opts ...MongodbrInse
 	for _, o := range opts {
 		o(insertManyOptions)
 	}
-	ctx, cancel := CreateContextWith(r.configuration, insertManyOptions.WithCtx)
+	ctx, cancel := CreateContextAndCancelWith(r.configuration, insertManyOptions.WithCtx)
 	defer cancel()
 
 	for index := range itemList {
@@ -128,7 +128,7 @@ func (r *RepositoryBase) Replace(filter interface{}, doc interface{}, opts ...Mo
 	for _, o := range opts {
 		o(rOptions)
 	}
-	ctx, cancel := CreateContextWith(r.configuration, rOptions.WithCtx)
+	ctx, cancel := CreateContextAndCancelWith(r.configuration, rOptions.WithCtx)
 	defer cancel()
 
 	_, err = r.collection.ReplaceOne(ctx, filter, doc, rOptions.ReplaceOptions)
@@ -146,7 +146,7 @@ func (r *RepositoryBase) DeleteOne(id primitive.ObjectID, opts ...MongodbrDelete
 	for _, o := range opts {
 		o(deleteOptions)
 	}
-	ctx, cancel := CreateContextWith(r.configuration, deleteOptions.WithCtx)
+	ctx, cancel := CreateContextAndCancelWith(r.configuration, deleteOptions.WithCtx)
 	defer cancel()
 
 	result, err := r.collection.DeleteOne(ctx, bson.M{"_id": id}, deleteOptions.DeleteOptions)
@@ -165,7 +165,7 @@ func (r *RepositoryBase) DeleteOneByFilter(filter interface{}, opts ...MongodbrD
 	for _, o := range opts {
 		o(deleteOptions)
 	}
-	ctx, cancel := CreateContextWith(r.configuration, deleteOptions.WithCtx)
+	ctx, cancel := CreateContextAndCancelWith(r.configuration, deleteOptions.WithCtx)
 	defer cancel()
 
 	result, err := r.collection.DeleteOne(ctx, filter, deleteOptions.DeleteOptions)
@@ -188,7 +188,7 @@ func (r *RepositoryBase) DeleteMany(filter interface{}, opts ...MongodbrDeleteOp
 	for _, o := range opts {
 		o(deleteOptions)
 	}
-	ctx, cancel := CreateContextWith(r.configuration, deleteOptions.WithCtx)
+	ctx, cancel := CreateContextAndCancelWith(r.configuration, deleteOptions.WithCtx)
 	defer cancel()
 
 	result, err := r.collection.DeleteMany(ctx, filter, deleteOptions.DeleteOptions)

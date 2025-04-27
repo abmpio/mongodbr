@@ -22,7 +22,7 @@ var _ IEntityIndex = (*MongoCol)(nil)
 // #region indexes members
 
 func (r *MongoCol) CreateIndex(indexModel mongo.IndexModel, opts ...*options.CreateIndexesOptions) (string, error) {
-	ctx, cancel := CreateContext(r.configuration)
+	ctx, cancel := CreateContextAndCancel(r.configuration)
 	defer cancel()
 	name, err := r.collection.Indexes().CreateOne(ctx, indexModel, opts...)
 	if err != nil {
@@ -32,7 +32,7 @@ func (r *MongoCol) CreateIndex(indexModel mongo.IndexModel, opts ...*options.Cre
 }
 
 func (r *MongoCol) CreateIndexes(indexModelList []mongo.IndexModel, opts ...*options.CreateIndexesOptions) ([]string, error) {
-	ctx, cancel := CreateContext(r.configuration)
+	ctx, cancel := CreateContextAndCancel(r.configuration)
 	defer cancel()
 
 	notExistList := make([]mongo.IndexModel, 0)
@@ -64,7 +64,7 @@ func (r *MongoCol) MustCreateIndexes(indexModelList []mongo.IndexModel, opts ...
 }
 
 func (r *MongoCol) DeleteIndex(name string) (err error) {
-	ctx, cancel := CreateContext(r.configuration)
+	ctx, cancel := CreateContextAndCancel(r.configuration)
 	defer cancel()
 
 	_, err = r.collection.Indexes().DropOne(ctx, name)
@@ -75,7 +75,7 @@ func (r *MongoCol) DeleteIndex(name string) (err error) {
 }
 
 func (r *MongoCol) DeleteAllIndexes() (err error) {
-	ctx, cancel := CreateContext(r.configuration)
+	ctx, cancel := CreateContextAndCancel(r.configuration)
 	defer cancel()
 
 	_, err = r.collection.Indexes().DropAll(ctx)
@@ -86,7 +86,7 @@ func (r *MongoCol) DeleteAllIndexes() (err error) {
 }
 
 func (r *MongoCol) ListIndexes() (indexes []map[string]interface{}, err error) {
-	ctx, cancel := CreateContext(r.configuration)
+	ctx, cancel := CreateContextAndCancel(r.configuration)
 	defer cancel()
 
 	cur, err := r.collection.Indexes().List(ctx)
