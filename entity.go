@@ -2,7 +2,6 @@ package mongodbr
 
 import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Entity struct {
@@ -34,6 +33,3 @@ func (entity *Entity) BeforeCreate() {
 func (entity Entity) GetObjectId() primitive.ObjectID {
 	return entity.ObjectId
 }
-
-// AggregateOptions handler pipeline
-type AggregateOption func(*options.AggregateOptions)

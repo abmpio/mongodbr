@@ -11,9 +11,11 @@ import (
 
 type EntityUpdate struct {
 }
+
+// bulk write
 type IEntityBulkWrite interface {
-	BulkWrite(models []mongo.WriteModel, opts ...*options.BulkWriteOptions) (*mongo.BulkWriteResult, error)
-	BulkWriteEntityList(entityList []IEntity, opts ...*options.BulkWriteOptions) (*mongo.BulkWriteResult, error)
+	BulkWrite(models []mongo.WriteModel, opts ...MongodbrBulkWriteOption) (*mongo.BulkWriteResult, error)
+	BulkWriteEntityList(entityList []IEntity, opts ...MongodbrBulkWriteOption) (*mongo.BulkWriteResult, error)
 }
 
 var _ IEntityBulkWrite = (*MongoCol)(nil)
@@ -62,21 +64,27 @@ func BuildWriteModelList(filterList []interface{}, getUpdateFn func(filter inter
 	return modelList
 }
 
-// #region update members
+// #region IEntityBulkWrite members
 
-func (c *MongoCol) BulkWrite(models []mongo.WriteModel, opts ...*options.BulkWriteOptions) (
+func (c *MongoCol) BulkWrite(models []mongo.WriteModel, opts ...MongodbrBulkWriteOption) (
 	*mongo.BulkWriteResult, error) {
 	if len(models) <= 0 {
 		return nil, nil
 	}
-	//没有设置参数，使用默认的
-	ctx, cancel := CreateContext(c.configuration)
+
+	bulkWriteOptions := &MongodbrBulkWriteOptions{
+		BulkWriteOptions: options.BulkWrite(),
+	}
+	for _, o := range opts {
+		o(bulkWriteOptions)
+	}
+	ctx, cancel := CreateContextWith(c.configuration, bulkWriteOptions.WithCtx)
 	defer cancel()
 
 	res, err := c.collection.BulkWrite(
 		ctx,
 		models,
-		opts...,
+		bulkWriteOptions.BulkWriteOptions,
 	)
 	if err != nil {
 		return res, err
@@ -85,7 +93,7 @@ func (c *MongoCol) BulkWrite(models []mongo.WriteModel, opts ...*options.BulkWri
 	return res, nil
 }
 
-func (c *MongoCol) BulkWriteEntityList(entityList []IEntity, opts ...*options.BulkWriteOptions) (
+func (c *MongoCol) BulkWriteEntityList(entityList []IEntity, opts ...MongodbrBulkWriteOption) (
 	*mongo.BulkWriteResult, error) {
 	modelList := _buildWriteModelForUpdate(entityList)
 	return c.BulkWrite(modelList, opts...)

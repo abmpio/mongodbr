@@ -56,36 +56,24 @@ func NewRepositoryBase(getDbCollection func() *mongo.Collection, opts ...Reposit
 	return repository, nil
 }
 
-// aggregate
-func (r *RepositoryBase) Aggregate(pipeline interface{}, dataList interface{}, opts ...AggregateOption) (err error) {
-	ctx, cancel := CreateContext(r.configuration)
-	defer cancel()
-
-	//设置默认搜索参数
-	aggregateOptions := options.Aggregate()
-	for _, o := range opts {
-		o(aggregateOptions)
-	}
-	cur, err := r.collection.Aggregate(ctx, pipeline, aggregateOptions)
-	if err != nil {
-		return err
-	}
-	defer cur.Close(ctx)
-
-	return cur.All(ctx, dataList)
-}
-
 // #region create members
 
-func (r *RepositoryBase) Create(item interface{}, opts ...*options.InsertOneOptions) (id primitive.ObjectID, err error) {
+func (r *RepositoryBase) Create(item interface{}, opts ...MongodbrInsertOneOption) (id primitive.ObjectID, err error) {
 	if item == nil {
 		return primitive.NilObjectID, fmt.Errorf("item is nil,col:%s", r.documentName)
 	}
-	ctx, cancel := CreateContext(r.configuration)
+
+	insertOneOptions := &MongodbrInsertOneOptions{
+		InsertOneOptions: options.InsertOne(),
+	}
+	for _, o := range opts {
+		o(insertOneOptions)
+	}
+	ctx, cancel := CreateContextWith(r.configuration, insertOneOptions.WithCtx)
 	defer cancel()
 
 	r.onBeforeCreate(item)
-	res, err := r.collection.InsertOne(ctx, item, opts...)
+	res, err := r.collection.InsertOne(ctx, item, insertOneOptions.InsertOneOptions)
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
@@ -95,17 +83,24 @@ func (r *RepositoryBase) Create(item interface{}, opts ...*options.InsertOneOpti
 	return primitive.NilObjectID, ErrInvalidType
 }
 
-func (r *RepositoryBase) CreateMany(itemList []interface{}, opts ...*options.InsertManyOptions) (ids []primitive.ObjectID, err error) {
+func (r *RepositoryBase) CreateMany(itemList []interface{}, opts ...MongodbrInsertManyOption) (ids []primitive.ObjectID, err error) {
 	if len(itemList) <= 0 {
 		return nil, nil
 	}
-	ctx, cancel := CreateContext(r.configuration)
+
+	insertManyOptions := &MongodbrInsertManyOptions{
+		InsertManyOptions: options.InsertMany(),
+	}
+	for _, o := range opts {
+		o(insertManyOptions)
+	}
+	ctx, cancel := CreateContextWith(r.configuration, insertManyOptions.WithCtx)
 	defer cancel()
 
 	for index := range itemList {
 		r.onBeforeCreate(itemList[index])
 	}
-	res, err := r.collection.InsertMany(ctx, itemList, opts...)
+	res, err := r.collection.InsertMany(ctx, itemList, insertManyOptions.InsertManyOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -122,15 +117,21 @@ func (r *RepositoryBase) CreateMany(itemList []interface{}, opts ...*options.Ins
 
 // #endregion
 
-func (r *RepositoryBase) ReplaceById(id primitive.ObjectID, doc interface{}, opts ...*options.ReplaceOptions) (err error) {
+func (r *RepositoryBase) ReplaceById(id primitive.ObjectID, doc interface{}, opts ...MongodbrReplaceOption) (err error) {
 	return r.Replace(bson.M{"_id": id}, doc, opts...)
 }
 
-func (r *RepositoryBase) Replace(filter interface{}, doc interface{}, opts ...*options.ReplaceOptions) (err error) {
-	ctx, cancel := CreateContext(r.configuration)
+func (r *RepositoryBase) Replace(filter interface{}, doc interface{}, opts ...MongodbrReplaceOption) (err error) {
+	rOptions := &MongodbrReplaceOptions{
+		ReplaceOptions: options.Replace(),
+	}
+	for _, o := range opts {
+		o(rOptions)
+	}
+	ctx, cancel := CreateContextWith(r.configuration, rOptions.WithCtx)
 	defer cancel()
 
-	_, err = r.collection.ReplaceOne(ctx, filter, doc, opts...)
+	_, err = r.collection.ReplaceOne(ctx, filter, doc, rOptions.ReplaceOptions)
 	if err != nil {
 		return err
 	}
@@ -138,11 +139,17 @@ func (r *RepositoryBase) Replace(filter interface{}, doc interface{}, opts ...*o
 }
 
 // 删除指定id的记录
-func (r *RepositoryBase) DeleteOne(id primitive.ObjectID, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
-	ctx, cancel := CreateContext(r.configuration)
+func (r *RepositoryBase) DeleteOne(id primitive.ObjectID, opts ...MongodbrDeleteOption) (*mongo.DeleteResult, error) {
+	deleteOptions := &MongodbrDeleteOptions{
+		DeleteOptions: options.Delete(),
+	}
+	for _, o := range opts {
+		o(deleteOptions)
+	}
+	ctx, cancel := CreateContextWith(r.configuration, deleteOptions.WithCtx)
 	defer cancel()
 
-	result, err := r.collection.DeleteOne(ctx, bson.M{"_id": id})
+	result, err := r.collection.DeleteOne(ctx, bson.M{"_id": id}, deleteOptions.DeleteOptions)
 	if err != nil {
 		return result, err
 	}
@@ -151,11 +158,17 @@ func (r *RepositoryBase) DeleteOne(id primitive.ObjectID, opts ...*options.Delet
 }
 
 // 删除指定条件的一条记录
-func (r *RepositoryBase) DeleteOneByFilter(filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
-	ctx, cancel := CreateContext(r.configuration)
+func (r *RepositoryBase) DeleteOneByFilter(filter interface{}, opts ...MongodbrDeleteOption) (*mongo.DeleteResult, error) {
+	deleteOptions := &MongodbrDeleteOptions{
+		DeleteOptions: options.Delete(),
+	}
+	for _, o := range opts {
+		o(deleteOptions)
+	}
+	ctx, cancel := CreateContextWith(r.configuration, deleteOptions.WithCtx)
 	defer cancel()
 
-	result, err := r.collection.DeleteOne(ctx, filter, opts...)
+	result, err := r.collection.DeleteOne(ctx, filter, deleteOptions.DeleteOptions)
 	if err != nil {
 		return result, err
 	}
@@ -164,15 +177,21 @@ func (r *RepositoryBase) DeleteOneByFilter(filter interface{}, opts ...*options.
 }
 
 // 删除多条记录
-func (r *RepositoryBase) DeleteMany(filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
+func (r *RepositoryBase) DeleteMany(filter interface{}, opts ...MongodbrDeleteOption) (*mongo.DeleteResult, error) {
 	if filter == nil {
 		err := fmt.Errorf("无法删除多条%s记录,filter参数不能为null", r.documentName)
 		return nil, err
 	}
-	ctx, cancel := CreateContext(r.configuration)
+	deleteOptions := &MongodbrDeleteOptions{
+		DeleteOptions: options.Delete(),
+	}
+	for _, o := range opts {
+		o(deleteOptions)
+	}
+	ctx, cancel := CreateContextWith(r.configuration, deleteOptions.WithCtx)
 	defer cancel()
 
-	result, err := r.collection.DeleteMany(ctx, filter, opts...)
+	result, err := r.collection.DeleteMany(ctx, filter, deleteOptions.DeleteOptions)
 	if err != nil {
 		return result, err
 	}

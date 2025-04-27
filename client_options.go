@@ -2,21 +2,15 @@ package mongodbr
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/bsoncodec"
 	"go.mongodb.org/mongo-driver/event"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var (
 	DefaultConfiguration                                   = NewConfiguration()
-	DefaultAlias                                           = "default"
-	_cachedClient        map[string]*mongo.Client          = make(map[string]*mongo.Client)
 	_cachedClientOptions map[string]*options.ClientOptions = make(map[string]*options.ClientOptions)
 	// 是否忽略uuid的自定义解码器
 	_ignoreUUIDDecoder = true
@@ -53,36 +47,8 @@ func IgnoreTimeDecoder(ignore bool) {
 	_ignoreTimeDecoder = ignore
 }
 
-func DefaultClient() *mongo.Client {
-	return _cachedClient[DefaultAlias]
-}
-
 func DefaultClientOptions() *options.ClientOptions {
 	return _cachedClientOptions[DefaultAlias]
-}
-
-// 构建默认的client
-func SetupDefaultClient(uri string, opts ...func(*options.ClientOptions)) (*mongo.Client, error) {
-	return RegistClient(DefaultAlias, uri, opts...)
-}
-
-func RegistClient(key string, uri string, opts ...func(*options.ClientOptions)) (*mongo.Client, error) {
-	client, clientOptions, err := CreateClient(uri, opts...)
-	if err != nil {
-		return nil, err
-	}
-	_cachedClient[key] = client
-	_cachedClientOptions[key] = options.MergeClientOptions(clientOptions)
-	return client, nil
-}
-
-// get client by key
-func GetClient(key string) *mongo.Client {
-	client, ok := _cachedClient[key]
-	if !ok {
-		return nil
-	}
-	return client
 }
 
 // get client options by key
@@ -92,41 +58,6 @@ func GetClientOptions(key string) *options.ClientOptions {
 		return nil
 	}
 	return clientOptions
-}
-
-func CreateClient(uri string, opts ...func(*options.ClientOptions)) (*mongo.Client, *options.ClientOptions, error) {
-	registryBuilder := bson.NewRegistryBuilder()
-	var mongoRegistry *bsoncodec.Registry
-	continRegistry := false
-	if !_ignoreUUIDDecoder {
-		registryBuilder = registryBuilder.
-			RegisterTypeEncoder(_tUUID, bsoncodec.ValueEncoderFunc(uuidEncodeValue)).
-			RegisterTypeDecoder(_tUUID, bsoncodec.ValueDecoderFunc(uuidDecodeValue))
-		continRegistry = true
-	}
-	if !_ignoreTimeDecoder {
-		// registryBuilder = registryBuilder.
-		// 	RegisterTypeDecoder(reflect.TypeOf(time.Time{}), bsoncodec.ValueDecoderFunc(timeDecodeValue))
-		// continRegistry = true
-	}
-	if continRegistry {
-		mongoRegistry = registryBuilder.Build()
-	}
-
-	//测试能否连接
-	clientOptions := options.Client().ApplyURI(uri)
-	if continRegistry && mongoRegistry != nil {
-		clientOptions.SetRegistry(mongoRegistry)
-	}
-	for _, eachOpt := range opts {
-		eachOpt(clientOptions)
-	}
-
-	client, err := mongo.Connect(context.TODO(), clientOptions)
-	if err != nil {
-		return nil, nil, fmt.Errorf("无法初始化mongodb,在连接到mongodb时出现异常,异常信息:%s", err.Error())
-	}
-	return client, clientOptions, nil
 }
 
 type Configuration struct {
@@ -144,6 +75,18 @@ func CreateContext(c *Configuration) (context.Context, context.CancelFunc) {
 		return context.WithCancel(ctx)
 	}
 	return context.WithTimeout(context.Background(), c.QueryTimeout)
+}
+
+// 使用parent的context来创建一个context
+func CreateContextWith(c *Configuration, ctx context.Context) (context.Context, context.CancelFunc) {
+	if ctx == nil {
+		return CreateContext(c)
+	}
+	// 包含了ctx
+	if c == nil || c.QueryTimeout <= 0 {
+		return context.WithCancel(ctx)
+	}
+	return context.WithTimeout(ctx, c.QueryTimeout)
 }
 
 func (c *Configuration) safeCreateItem() interface{} {

@@ -9,36 +9,42 @@ import (
 
 // update
 type IEntityUpdate interface {
-	FindOneAndUpdate(entity IEntity, opts ...*options.FindOneAndUpdateOptions) error
-	FindOneAndUpdateWithId(objectId primitive.ObjectID, update interface{}, opts ...*options.FindOneAndUpdateOptions) error
-	UpdateOne(filter interface{}, update interface{}, opts ...*options.UpdateOptions) error
-	UpdateMany(filter interface{}, update interface{}, opts ...*options.UpdateOptions) (interface{}, error)
+	FindOneAndUpdate(entity IEntity, opts ...MongodbrFindOneAndUpdateOption) error
+	FindOneAndUpdateWithId(objectId primitive.ObjectID, update interface{}, opts ...MongodbrFindOneAndUpdateOption) error
+	UpdateOne(filter interface{}, update interface{}, opts ...MongodbrUpdateOption) error
+	UpdateMany(filter interface{}, update interface{}, opts ...MongodbrUpdateOption) (interface{}, error)
 }
 
 var _ IEntityUpdate = (*MongoCol)(nil)
 
 // #region update members
 
-func (r *MongoCol) FindOneAndUpdate(entity IEntity, opts ...*options.FindOneAndUpdateOptions) error {
+func (r *MongoCol) FindOneAndUpdate(entity IEntity, opts ...MongodbrFindOneAndUpdateOption) error {
 	objectId := entity.GetObjectId()
 	update := builder.NewBsonBuilder().NewOrUpdateSet(entity).ToValue()
 	return r.FindOneAndUpdateWithId(objectId, update, opts...)
 }
 
-func (r *MongoCol) FindOneAndUpdateWithId(objectId primitive.ObjectID, update interface{}, opts ...*options.FindOneAndUpdateOptions) error {
-	//没有设置参数，使用默认的
-	ctx, cancel := CreateContext(r.configuration)
+func (r *MongoCol) FindOneAndUpdateWithId(objectId primitive.ObjectID, update interface{}, opts ...MongodbrFindOneAndUpdateOption) error {
+	uOptions := options.FindOneAndUpdate()
+	uOptions.SetUpsert(false)
+
+	// handle options
+	mongodbrUOptions := &MongodbrFindOneAndUpdateOptions{
+		FindOneAndUpdateOptions: uOptions,
+	}
+	for _, eachOpt := range opts {
+		eachOpt(mongodbrUOptions)
+	}
+	// handle context
+	ctx, cancel := CreateContextWith(r.configuration, mongodbrUOptions.WithCtx)
 	defer cancel()
 
-	if len(opts) <= 0 {
-		opts = make([]*options.FindOneAndUpdateOptions, 0)
-		opts = append(opts, options.FindOneAndUpdate().SetUpsert(false))
-	}
 	if err := r.collection.FindOneAndUpdate(
 		ctx,
 		bson.M{"_id": objectId},
 		update,
-		opts...,
+		mongodbrUOptions.FindOneAndUpdateOptions,
 	).Err(); err != nil {
 		return err
 	}
@@ -46,11 +52,19 @@ func (r *MongoCol) FindOneAndUpdateWithId(objectId primitive.ObjectID, update in
 	return nil
 }
 
-func (r *MongoCol) UpdateOne(filter interface{}, update interface{}, opts ...*options.UpdateOptions) error {
-	ctx, cancel := CreateContext(r.configuration)
+func (r *MongoCol) UpdateOne(filter interface{}, update interface{}, opts ...MongodbrUpdateOption) error {
+	// handle options
+	uOptions := &MongodbrUpdateOptions{
+		UpdateOptions: options.Update(),
+	}
+	for _, eachOpt := range opts {
+		eachOpt(uOptions)
+	}
+	// handle context
+	ctx, cancel := CreateContextWith(r.configuration, uOptions.WithCtx)
 	defer cancel()
 
-	_, err := r.collection.UpdateOne(ctx, filter, update, opts...)
+	_, err := r.collection.UpdateOne(ctx, filter, update, uOptions.UpdateOptions)
 	if err != nil {
 		return err
 	}
@@ -58,11 +72,19 @@ func (r *MongoCol) UpdateOne(filter interface{}, update interface{}, opts ...*op
 	return nil
 }
 
-func (r *MongoCol) UpdateMany(filter interface{}, update interface{}, opts ...*options.UpdateOptions) (interface{}, error) {
-	ctx, cancel := CreateContext(r.configuration)
+func (r *MongoCol) UpdateMany(filter interface{}, update interface{}, opts ...MongodbrUpdateOption) (interface{}, error) {
+	// handle options
+	uOptions := &MongodbrUpdateOptions{
+		UpdateOptions: options.Update(),
+	}
+	for _, eachOpt := range opts {
+		eachOpt(uOptions)
+	}
+	// handle context
+	ctx, cancel := CreateContextWith(r.configuration, uOptions.WithCtx)
 	defer cancel()
 
-	result, err := r.collection.UpdateMany(ctx, filter, update, opts...)
+	result, err := r.collection.UpdateMany(ctx, filter, update, uOptions.UpdateOptions)
 	if err != nil {
 		if result != nil {
 			return result.UpsertedID, err

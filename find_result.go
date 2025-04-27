@@ -1,6 +1,7 @@
 package mongodbr
 
 import (
+	"context"
 	"errors"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -12,6 +13,8 @@ type IFindResult interface {
 	All(val interface{}) (err error)
 	ToAll() ([]interface{}, error)
 
+	// get context associated
+	GetContext() context.Context
 	GetSingleResult() (res *mongo.SingleResult)
 	GetCursor() (cur *mongo.Cursor)
 	GetError() (err error)
@@ -22,6 +25,7 @@ type findResult struct {
 	cur           *mongo.Cursor
 	err           error
 	configuration *Configuration
+	context       context.Context
 }
 
 // #IFindResult members
@@ -35,7 +39,7 @@ func (r *findResult) One(val interface{}) (err error) {
 	}
 
 	//没有设置参数，使用默认的
-	ctx, cancel := CreateContext(r.configuration)
+	ctx, cancel := CreateContextWith(r.configuration, r.GetContext())
 	defer cancel()
 
 	if !r.cur.TryNext(ctx) {
@@ -58,8 +62,10 @@ func (r *findResult) All(val interface{}) (err error) {
 		return r.err
 	}
 
-	ctx, cancel := CreateContext(r.configuration)
+	//没有设置参数，使用默认的
+	ctx, cancel := CreateContextWith(r.configuration, r.GetContext())
 	defer cancel()
+
 	if r.cur == nil {
 		return
 	}
@@ -76,10 +82,10 @@ func (r *findResult) ToAll() ([]interface{}, error) {
 	if r.cur == nil {
 		return nil, nil
 	}
+
 	//没有设置参数，使用默认的
-	ctx, cancel := CreateContext(r.configuration)
+	ctx, cancel := CreateContextWith(r.configuration, r.GetContext())
 	defer cancel()
-	defer r.cur.Close(ctx)
 
 	var result []interface{}
 	for r.cur.Next(ctx) {
@@ -90,6 +96,11 @@ func (r *findResult) ToAll() ([]interface{}, error) {
 		result = append(result, o)
 	}
 	return result, nil
+}
+
+// get context associated
+func (r *findResult) GetContext() context.Context {
+	return r.context
 }
 
 func (r *findResult) GetSingleResult() (res *mongo.SingleResult) {
