@@ -37,7 +37,7 @@ func FindOneTByFilter[T any](repository IRepository, filter interface{}, opts ..
 // find all t
 func FindAllT[T any](repository IRepository, opts ...MongodbrFindOption) ([]*T, error) {
 	list := make([]*T, 0)
-	err := repository.FindAll(list, opts...)
+	err := repository.FindAll(&list, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func FindAllT[T any](repository IRepository, opts ...MongodbrFindOption) ([]*T, 
 // find list T by filter
 func FindTByFilter[T any](repository IRepository, filter interface{}, opts ...MongodbrFindOption) ([]*T, error) {
 	list := make([]*T, 0)
-	err := repository.FindListByFilter(filter, list, opts...)
+	err := repository.FindListByFilter(filter, &list, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func FindTByFilter[T any](repository IRepository, filter interface{}, opts ...Mo
 // find list T by _id list
 func FindTListByObjectIdList[T any](repository IRepository, idList []primitive.ObjectID, opts ...MongodbrFindOption) ([]*T, error) {
 	list := make([]*T, 0)
-	err := repository.FindListByObjectIdList(idList, list, opts...)
+	err := repository.FindListByObjectIdList(idList, &list, opts...)
 	if err != nil {
 		return nil, err
 	}

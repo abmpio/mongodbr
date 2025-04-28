@@ -95,7 +95,7 @@ func (r *MongoCol) FindListByFilter(filter interface{}, list interface{}, opts .
 		configuration: r.configuration,
 		cur:           cur,
 	}
-	err = result.All(&list)
+	err = result.All(list)
 	if err != nil {
 		return err
 	}
