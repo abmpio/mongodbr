@@ -12,20 +12,40 @@ type MongodbrFindOptions struct {
 
 type MongodbrFindOption func(*MongodbrFindOptions)
 
+func (o *MongodbrFindOptions) ensureFindOptionsInit() {
+	if o.FindOptions == nil {
+		o.FindOptions = options.Find()
+	}
+}
+
+// merge MongodbrFindOption list and return one *MongodbrFindOptions
+func MergeMongodbrFindOption(opts ...MongodbrFindOption) *MongodbrFindOptions {
+	o := &MongodbrFindOptions{
+		FindOptions: options.Find(),
+	}
+	for _, eachOpt := range opts {
+		eachOpt(o)
+	}
+	return o
+}
+
 func MongodbrFindOptionWithSkip(skip int64) MongodbrFindOption {
 	return func(fo *MongodbrFindOptions) {
+		fo.ensureFindOptionsInit()
 		fo.SetSkip(skip)
 	}
 }
 
 func MongodbrFindOptionWithLimit(limit int64) MongodbrFindOption {
 	return func(fo *MongodbrFindOptions) {
+		fo.ensureFindOptionsInit()
 		fo.SetLimit(limit)
 	}
 }
 
 func MongodbrFindOptionWithSort(sort bson.D) MongodbrFindOption {
 	return func(fo *MongodbrFindOptions) {
+		fo.ensureFindOptionsInit()
 		if len(sort) > 0 {
 			fo.SetSort(sort)
 		}
@@ -34,6 +54,7 @@ func MongodbrFindOptionWithSort(sort bson.D) MongodbrFindOption {
 
 func MongodbrFindOptionWithPage(pageIndex int64, pageSize int64) MongodbrFindOption {
 	return func(fo *MongodbrFindOptions) {
+		fo.ensureFindOptionsInit()
 		fo.SetLimit(pageSize)
 		if pageIndex < 1 {
 			pageIndex = 1
@@ -48,6 +69,7 @@ func MongodbrFindOptionWithSpecifiedFields(fieldNameList []string) MongodbrFindO
 		if len(fieldNameList) <= 0 {
 			return
 		}
+		fo.ensureFindOptionsInit()
 		projection := bson.M{}
 		for _, eachFieldName := range fieldNameList {
 			projection[eachFieldName] = 1
@@ -65,6 +87,7 @@ func MongodbrFindOptionWithFieldSort(fieldName string, isAsc bool) MongodbrFindO
 		if !ok {
 			return
 		}
+		fo.ensureFindOptionsInit()
 		sortValue := 1
 		if !isAsc {
 			sortValue = -1

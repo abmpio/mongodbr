@@ -18,6 +18,17 @@ func (o *MongodbrFindOneOptions) ensureFindOneOptionsInit() {
 	}
 }
 
+// merge MongodbrFindOneOption list and return one *MongodbrFindOneOptions
+func MergeMongodbrFindOneOption(opts ...MongodbrFindOneOption) *MongodbrFindOneOptions {
+	findOneOptions := &MongodbrFindOneOptions{
+		FindOneOptions: options.FindOne(),
+	}
+	for _, eachOpt := range opts {
+		eachOpt(findOneOptions)
+	}
+	return findOneOptions
+}
+
 // merge contextOptions
 func MongodbrFindOneOptionWithContextOptions(opts ...WithContextOptions) MongodbrFindOneOption {
 	return func(mfoo *MongodbrFindOneOptions) {
