@@ -1,6 +1,8 @@
 package mongodbr
 
 import (
+	"context"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -30,11 +32,9 @@ func MergeMongodbrFindOneOption(opts ...MongodbrFindOneOption) *MongodbrFindOneO
 }
 
 // MongodbrFindOneOption with context
-func MongodbrFindOneOptionWithContext(opts ...WithContextOptions) MongodbrFindOneOption {
+func MongodbrFindOneOptionWithContext(ctx context.Context) MongodbrFindOneOption {
 	return func(mfoo *MongodbrFindOneOptions) {
-		for _, eachCtx := range opts {
-			mfoo.WithCtx = eachCtx.WithCtx
-		}
+		mfoo.WithCtx = ctx
 	}
 }
 
