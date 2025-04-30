@@ -1,6 +1,8 @@
 package mongodbr
 
 import (
+	"context"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -29,6 +31,14 @@ func MergeMongodbrFindOption(opts ...MongodbrFindOption) *MongodbrFindOptions {
 	return o
 }
 
+// MongodbrFindOption with context
+func MongodbrFindOptionWithContext(ctx context.Context) MongodbrFindOption {
+	return func(mco *MongodbrFindOptions) {
+		mco.WithCtx = ctx
+	}
+}
+
+// MongodbrFindOption with skip
 func MongodbrFindOptionWithSkip(skip int64) MongodbrFindOption {
 	return func(fo *MongodbrFindOptions) {
 		fo.ensureFindOptionsInit()
@@ -36,6 +46,7 @@ func MongodbrFindOptionWithSkip(skip int64) MongodbrFindOption {
 	}
 }
 
+// MongodbrFindOption with limit
 func MongodbrFindOptionWithLimit(limit int64) MongodbrFindOption {
 	return func(fo *MongodbrFindOptions) {
 		fo.ensureFindOptionsInit()
@@ -43,6 +54,7 @@ func MongodbrFindOptionWithLimit(limit int64) MongodbrFindOption {
 	}
 }
 
+// MongodbrFindOption with sort
 func MongodbrFindOptionWithSort(sort bson.D) MongodbrFindOption {
 	return func(fo *MongodbrFindOptions) {
 		fo.ensureFindOptionsInit()
@@ -52,6 +64,7 @@ func MongodbrFindOptionWithSort(sort bson.D) MongodbrFindOption {
 	}
 }
 
+// MongodbrFindOption with page(with skip and limit)
 func MongodbrFindOptionWithPage(pageIndex int64, pageSize int64) MongodbrFindOption {
 	return func(fo *MongodbrFindOptions) {
 		fo.ensureFindOptionsInit()
@@ -63,7 +76,7 @@ func MongodbrFindOptionWithPage(pageIndex int64, pageSize int64) MongodbrFindOpt
 	}
 }
 
-// result with specified fields
+// MongodbrFindOption with specified fields
 func MongodbrFindOptionWithSpecifiedFields(fieldNameList []string) MongodbrFindOption {
 	return func(fo *MongodbrFindOptions) {
 		if len(fieldNameList) <= 0 {
@@ -78,6 +91,7 @@ func MongodbrFindOptionWithSpecifiedFields(fieldNameList []string) MongodbrFindO
 	}
 }
 
+// MongodbrFindOption with field sort
 func MongodbrFindOptionWithFieldSort(fieldName string, isAsc bool) MongodbrFindOption {
 	return func(fo *MongodbrFindOptions) {
 		if fo.Sort == nil {

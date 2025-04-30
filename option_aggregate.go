@@ -1,6 +1,8 @@
 package mongodbr
 
 import (
+	"context"
+
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -21,4 +23,11 @@ func MergeMongodbrAggregateOption(opts ...MongodbrAggregateOption) *MongodbrAggr
 		eachOpt(o)
 	}
 	return o
+}
+
+// MongodbrAggregateOption with context
+func MongodbrAggregateOptionWithContext(ctx context.Context) MongodbrAggregateOption {
+	return func(mco *MongodbrAggregateOptions) {
+		mco.WithCtx = ctx
+	}
 }

@@ -25,7 +25,7 @@ func MergeMongodbrBulkWriteOption(opts ...MongodbrBulkWriteOption) *MongodbrBulk
 }
 
 // MongodbrCountOptions with context
-func MongodbrBulkWriteOptionWithContext(ctx context.Context) MongodbrBulkWriteOption {
+func MongodbrBulkWriteOptionWith(ctx context.Context) MongodbrBulkWriteOption {
 	return func(mco *MongodbrBulkWriteOptions) {
 		mco.WithCtx = ctx
 	}

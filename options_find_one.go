@@ -29,8 +29,8 @@ func MergeMongodbrFindOneOption(opts ...MongodbrFindOneOption) *MongodbrFindOneO
 	return findOneOptions
 }
 
-// merge contextOptions
-func MongodbrFindOneOptionWithContextOptions(opts ...WithContextOptions) MongodbrFindOneOption {
+// MongodbrFindOneOption with context
+func MongodbrFindOneOptionWithContext(opts ...WithContextOptions) MongodbrFindOneOption {
 	return func(mfoo *MongodbrFindOneOptions) {
 		for _, eachCtx := range opts {
 			mfoo.WithCtx = eachCtx.WithCtx
@@ -38,7 +38,7 @@ func MongodbrFindOneOptionWithContextOptions(opts ...WithContextOptions) Mongodb
 	}
 }
 
-// result with specified fields
+// MongodbrFindOneOption with specified fields
 func MongodbrFindOneOptionWithSpecifiedFields(fieldNameList []string) MongodbrFindOneOption {
 	return func(mfoo *MongodbrFindOneOptions) {
 		if len(fieldNameList) <= 0 {
@@ -53,6 +53,7 @@ func MongodbrFindOneOptionWithSpecifiedFields(fieldNameList []string) MongodbrFi
 	}
 }
 
+// MongodbrFindOneOption with field sort
 func MongodbrFindOneOptionWithFieldSort(fieldName string, isAsc bool) MongodbrFindOneOption {
 	return func(mfoo *MongodbrFindOneOptions) {
 		mfoo.ensureFindOneOptionsInit()

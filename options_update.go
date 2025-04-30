@@ -23,6 +23,15 @@ func MergeMongodbrFindOneAndUpdateOption(opts ...MongodbrFindOneAndUpdateOption)
 	return o
 }
 
+// MongodbrFindOneAndUpdateOption with context
+func MongodbrFindOneAndUpdateOptionWithContext(opts ...WithContextOptions) MongodbrFindOneAndUpdateOption {
+	return func(mfoo *MongodbrFindOneAndUpdateOptions) {
+		for _, eachCtx := range opts {
+			mfoo.WithCtx = eachCtx.WithCtx
+		}
+	}
+}
+
 // UpdateOptions with context
 type MongodbrUpdateOptions struct {
 	*options.UpdateOptions
@@ -40,6 +49,15 @@ func MergeMongodbrUpdateOption(opts ...MongodbrUpdateOption) *MongodbrUpdateOpti
 		eachOpt(o)
 	}
 	return o
+}
+
+// MongodbrUpdateOption with context
+func MongodbrUpdateOptionWithContext(opts ...WithContextOptions) MongodbrUpdateOption {
+	return func(mfoo *MongodbrUpdateOptions) {
+		for _, eachCtx := range opts {
+			mfoo.WithCtx = eachCtx.WithCtx
+		}
+	}
 }
 
 // ReplaceOptions with context
@@ -61,6 +79,15 @@ func MergeMongodbrReplaceOption(opts ...MongodbrReplaceOption) *MongodbrReplaceO
 	return o
 }
 
+// MongodbrReplaceOption with context
+func MongodbrReplaceOptionWithContext(opts ...WithContextOptions) MongodbrReplaceOption {
+	return func(mfoo *MongodbrReplaceOptions) {
+		for _, eachCtx := range opts {
+			mfoo.WithCtx = eachCtx.WithCtx
+		}
+	}
+}
+
 // InsertOneOptions with context
 type MongodbrInsertOneOptions struct {
 	*options.InsertOneOptions
@@ -78,6 +105,15 @@ func MergeMongodbrInsertOneOption(opts ...MongodbrInsertOneOption) *MongodbrInse
 		eachOpt(o)
 	}
 	return o
+}
+
+// MongodbrInsertOneOption with context
+func MongodbrInsertOneOptionWithContext(opts ...WithContextOptions) MongodbrInsertOneOption {
+	return func(mfoo *MongodbrInsertOneOptions) {
+		for _, eachCtx := range opts {
+			mfoo.WithCtx = eachCtx.WithCtx
+		}
+	}
 }
 
 // InsertOneOptions with context
@@ -99,6 +135,15 @@ func MergeMongodbrInsertManyOption(opts ...MongodbrInsertManyOption) *MongodbrIn
 	return o
 }
 
+// MongodbrInsertManyOption with context
+func MongodbrInsertManyOptionWithContext(opts ...WithContextOptions) MongodbrInsertManyOption {
+	return func(mfoo *MongodbrInsertManyOptions) {
+		for _, eachCtx := range opts {
+			mfoo.WithCtx = eachCtx.WithCtx
+		}
+	}
+}
+
 // DeleteOptions with context
 type MongodbrDeleteOptions struct {
 	*options.DeleteOptions
@@ -116,4 +161,13 @@ func MergeMongodbrDeleteOption(opts ...MongodbrDeleteOption) *MongodbrDeleteOpti
 		eachOpt(o)
 	}
 	return o
+}
+
+// MongodbrDeleteOption with context
+func MongodbrDeleteOptionWithContext(opts ...WithContextOptions) MongodbrDeleteOption {
+	return func(mfoo *MongodbrDeleteOptions) {
+		for _, eachCtx := range opts {
+			mfoo.WithCtx = eachCtx.WithCtx
+		}
+	}
 }
