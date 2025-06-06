@@ -45,21 +45,11 @@ func bsonDToMap(d primitive.D, opts ...ConvertPrimitiveDToMapOptions) map[string
 	return m
 }
 
-func ConvertPrimitiveDToMap(d primitive.D, opts ...ConvertPrimitiveDToMapOptions) map[string]interface{} {
-	return bsonDToMap(d, opts...)
-}
-
-// 将[]interface{}中的值转换为map[string]interface{}
-func ConvertPrimitiveAToMap(v interface{}) map[string]interface{} {
+// bsonAToMap 将 bson.A 转换为 map[string]interface{}
+func bsonAToMap(a primitive.A) map[string]interface{} {
 	result := make(map[string]interface{})
-
-	// 确保输入是 []interface{}
-	array, ok := v.(primitive.A)
-	if !ok {
-		return result
-	}
 	// 遍历数组
-	for _, item := range array {
+	for _, item := range a {
 		switch val := item.(type) {
 		case bson.D:
 			// bson.D -> map[string]interface{}
@@ -80,4 +70,35 @@ func ConvertPrimitiveAToMap(v interface{}) map[string]interface{} {
 		}
 	}
 	return result
+}
+
+func ConvertPrimitiveDToMap(d primitive.D, opts ...ConvertPrimitiveDToMapOptions) map[string]interface{} {
+	return bsonDToMap(d, opts...)
+}
+
+// 将[]interface{}中的值转换为map[string]interface{}
+func ConvertPrimitiveAToMap(v interface{}) map[string]interface{} {
+	// 确保输入是 []interface{}
+	a, ok := v.(primitive.A)
+	if !ok {
+		return make(map[string]interface{})
+	}
+	return bsonAToMap(a)
+}
+
+// convert value to map
+// only when v is primitive.D or primitive.A
+func ConvertValueToMap(v interface{}) map[string]interface{} {
+	if v == nil {
+		return nil
+	}
+	switch value := v.(type) {
+	case primitive.D:
+		return bsonDToMap(value)
+	case primitive.A:
+		return bsonAToMap(value)
+	default:
+		// other return nil
+		return nil
+	}
 }
