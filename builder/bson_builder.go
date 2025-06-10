@@ -3,7 +3,8 @@ package builder
 import "go.mongodb.org/mongo-driver/bson"
 
 const (
-	setKey string = "$set"
+	setKey   string = "$set"
+	unsetKey string = "$unset"
 )
 
 type BsonBuilder struct {
@@ -17,9 +18,25 @@ func NewBsonBuilder() *BsonBuilder {
 // 增加$set类型的值
 func (b *BsonBuilder) NewOrUpdateSet(v interface{}) *BsonBuilder {
 	b.ensureBson()
-	setValue := b.bson[setKey]
-	if setValue == nil {
-		b.bson = bson.M{"$set": v}
+	b.bson[setKey] = v
+	return b
+}
+
+// 构建一个$set类型的值，用于设置字段值
+func NewOrUpdateSetBsonBuilder(v interface{}) *BsonBuilder {
+	b := NewBsonBuilder()
+	b.NewOrUpdateSet(v)
+	return b
+}
+
+// 增加$unset类型的值,用于移除字段值
+func UnsetBsonBuilder(fields []string) *BsonBuilder {
+	b := NewBsonBuilder().ensureBson()
+	unsetValue := bson.M{}
+	b.bson[unsetKey] = unsetValue
+	// iterate for fields
+	for _, eachField := range fields {
+		unsetValue[eachField] = ""
 	}
 	return b
 }
