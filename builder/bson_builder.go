@@ -15,7 +15,8 @@ type BsonBuilder struct {
 }
 
 func NewBsonBuilder() *BsonBuilder {
-	return &BsonBuilder{}
+	b := &BsonBuilder{}
+	return b.ensureBson()
 }
 
 // 增加$set类型的值
@@ -53,7 +54,16 @@ func (b *BsonBuilder) UnsetOrDefault() bson.M {
 
 // append field value to $set field
 // V1:key V2:value
-func (b *BsonBuilder) AppendSetField(fieldValueList ...tuple.T2[string, interface{}]) *BsonBuilder {
+func (b *BsonBuilder) AppendSetField(fieldName string, fieldValue interface{}) *BsonBuilder {
+	if len(fieldName) <= 0 {
+		return b
+	}
+	return b.AppendSetFieldWith(tuple.New2(fieldName, fieldValue))
+}
+
+// append field value list to $set field
+// V1:key V2:value
+func (b *BsonBuilder) AppendSetFieldWith(fieldValueList ...tuple.T2[string, interface{}]) *BsonBuilder {
 	if len(fieldValueList) <= 0 {
 		return b
 	}
