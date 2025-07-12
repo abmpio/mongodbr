@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -79,11 +80,13 @@ func RunTransactionWithContext(ctx context.Context,
 	for _, eachOpt := range opts {
 		eachOpt(transactionOptions)
 	}
+
 	maxRetry := transactionOptions.MaxRetry
 	if maxRetry <= 0 {
 		maxRetry = 3
 	}
-	// client
+
+	// Get MongoDB client
 	c := GetClient(transactionOptions.ClientKey)
 
 	// start session
@@ -93,36 +96,55 @@ func RunTransactionWithContext(ctx context.Context,
 	}
 	defer session.EndSession(context.Background())
 
-	for attempt := 0; attempt < transactionOptions.MaxRetry; attempt++ {
-		// 每次事务执行新建一个超时ctx
-		txnCtx, cancel := context.WithTimeout(ctx, transactionOptions.Timeout)
-		defer cancel()
+	for attempt := 0; attempt < maxRetry; attempt++ {
+		var txnCtx context.Context
+		var cancel context.CancelFunc
 
-		// perform operation
-		err = mongo.WithSession(txnCtx, session, func(sc mongo.SessionContext) error {
-			// start transaction
-			if err := session.StartTransaction(transactionOptions.withTransactionOptions...); err != nil {
-				return err
-			}
+		// Timeout 控制：-1 表示不启用超时
+		if transactionOptions.Timeout == -1 {
+			txnCtx = ctx
+			cancel = func() {} // 空的 cancel，避免 nil panic
+		} else {
+			txnCtx, cancel = context.WithTimeout(ctx, transactionOptions.Timeout)
+		}
 
-			innerErr := fn(sc)
-			if innerErr != nil {
-				// roolback
-				_ = session.AbortTransaction(sc)
-				return innerErr
-			}
-			if err := sc.CommitTransaction(sc); err != nil {
-				return err
-			}
-			return nil
-		})
+		// 确保 cancel() 每次都能被调用
+		func() {
+			defer cancel()
 
+			// perform operation
+			err = mongo.WithSession(txnCtx, session, func(sc mongo.SessionContext) error {
+				// start transaction
+				if err := session.StartTransaction(transactionOptions.withTransactionOptions...); err != nil {
+					return err
+				}
+
+				// 防止panic
+				innerErr := func() (err error) {
+					defer func() {
+						if r := recover(); r != nil {
+							err = fmt.Errorf("panic in transaction function: %v", r)
+						}
+					}()
+					return fn(sc)
+				}()
+
+				if innerErr != nil {
+					// roolback
+					_ = session.AbortTransaction(sc)
+					return innerErr
+				}
+
+				return sc.CommitTransaction(sc)
+			})
+		}()
 		if err == nil {
 			return nil
 		}
 
-		// 如果是瞬时事务错误，允许重试
+		// transient error: retry
 		if isTransientTransactionError(err) {
+			log.Printf("Transaction attempt %d/%d failed: %v", attempt+1, maxRetry, err)
 			continue
 		}
 
