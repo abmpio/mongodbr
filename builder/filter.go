@@ -8,10 +8,23 @@ func Filter_Regex(filter map[string]interface{}, key string, v interface{}) map[
 	return filter
 }
 
-// build filter for regex and return this filter
-func Filter_RegexTo(key string, v interface{}) map[string]interface{} {
+// build filter for regex and return this filter as bson.E
+func Filter_RegexToBsonE(key string, v interface{}) bson.E {
+	filter := bson.E{
+		Key: key,
+		Value: bson.M{
+			"$regex": v, "$options": "i",
+		},
+	}
+	return filter
+}
+
+// build filter for regex and return this filter as bson.M
+func Filter_RegexToBsonM(key string, v interface{}) bson.M {
 	filter := bson.M{
-		key: map[string]interface{}{"$regex": v, "$options": "i"},
+		key: bson.M{
+			"$regex": v, "$options": "i",
+		},
 	}
 	return filter
 }
