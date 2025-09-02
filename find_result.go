@@ -81,8 +81,14 @@ func (r *findResult) All(val interface{}) (err error) {
 	if r.cur == nil {
 		return
 	}
+	// if !r.cur.TryNext(ctx) {
+	// 	return ctx.Err()
+	// }
 	if !r.cur.TryNext(ctx) {
-		return ctx.Err()
+		if err := r.cur.Err(); err != nil {
+			return err
+		}
+		return nil // no data, no err
 	}
 	return r.cur.All(ctx, val)
 }
