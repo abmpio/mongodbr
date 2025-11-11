@@ -1,5 +1,5 @@
-github.com/abmpio/libx v0.0.0-20250526021149-38a2934a3c70 h1:X06x6S+CbN2TpoPcA7uJaXyK4U4IkThDy5nToOfYio0=
-github.com/abmpio/libx v0.0.0-20250526021149-38a2934a3c70/go.mod h1:1FdlmnwDWa2mTehDyH2JgEozqZv2uTys6LM+PmYRCZg=
+github.com/abmpio/libx v0.0.0-20251025150424-a9353a6e248f h1:9z3+r1XWqtAHWWejqX8f2RSqpJSVenT4DWCQxE0v/1s=
+github.com/abmpio/libx v0.0.0-20251025150424-a9353a6e248f/go.mod h1:1FdlmnwDWa2mTehDyH2JgEozqZv2uTys6LM+PmYRCZg=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/golang/snappy v0.0.4 h1:yAGX7huGHXlcLOEtBnF4w7FQwA26wojNCwOYAEhLjQM=
 github.com/golang/snappy v0.0.4/go.mod h1:/XxbfmMg8lxefKM7IXC3fBNl/7bRcc72aCRzEWrmP2Q=

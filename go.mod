@@ -3,7 +3,7 @@ module github.com/abmpio/mongodbr
 go 1.19
 
 require (
-	github.com/abmpio/libx v0.0.0-20250526021149-38a2934a3c70
+	github.com/abmpio/libx v0.0.0-20251025150424-a9353a6e248f
 	github.com/satori/go.uuid v1.2.0
 	go.mongodb.org/mongo-driver v1.17.3
 )
