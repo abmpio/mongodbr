@@ -58,7 +58,7 @@ func Ping(client *mongo.Client) error {
 		return fmt.Errorf("client is nil")
 	}
 	//测试ping
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	err := client.Ping(ctx, readpref.Primary())
 	if err != nil {

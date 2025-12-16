@@ -89,18 +89,6 @@ func CreateContextAndCancelWith(c *Configuration, ctx context.Context) (context.
 	return context.WithTimeout(ctx, c.QueryTimeout)
 }
 
-// // 使用parent的context来创建一个context
-// func CreateContextWith(c *Configuration, ctx context.Context) (context.Context, context.CancelFunc) {
-// 	if ctx == nil {
-// 		return CreateContext(c)
-// 	}
-// 	// 包含了ctx
-// 	if c == nil || c.QueryTimeout <= 0 {
-// 		return context.WithCancel(ctx)
-// 	}
-// 	return context.WithTimeout(ctx, c.QueryTimeout)
-// }
-
 func (c *Configuration) safeCreateItem() interface{} {
 	if c.createItemFunc == nil {
 		return make(map[string]interface{})
