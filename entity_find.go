@@ -1,9 +1,8 @@
 package mongodbr
 
 import (
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type IEntityFind interface {
@@ -14,9 +13,9 @@ type IEntityFind interface {
 	FindAll(list interface{}, opts ...MongodbrFindOption) error
 	FindListByFilter(filter interface{}, list interface{}, opts ...MongodbrFindOption) error
 	FindListResultByFilter(filter interface{}, opts ...MongodbrFindOption) IFindResult
-	FindListByObjectIdList(idList []primitive.ObjectID, list interface{}, opts ...MongodbrFindOption) error
+	FindListByObjectIdList(idList []bson.ObjectID, list interface{}, opts ...MongodbrFindOption) error
 
-	FindOneByObjectId(id primitive.ObjectID, v interface{}, opts ...MongodbrFindOneOption) error
+	FindOneByObjectId(id bson.ObjectID, v interface{}, opts ...MongodbrFindOneOption) error
 	FindOne(filter interface{}, v interface{}, opts ...MongodbrFindOneOption) error
 
 	Distinct(fieldName string, filter interface{}, opts ...*WithContextOptions) ([]interface{}, error)
@@ -29,7 +28,7 @@ var _ IEntityFind = (*MongoCol)(nil)
 func (r *MongoCol) CountByFilter(filter interface{}, opts ...MongodbrCountOption) (int64, error) {
 	// handle options
 	cOptions := &MongodbrCountOptions{
-		CountOptions: options.Count(),
+		CountOptions: &options.CountOptions{},
 	}
 	for _, eachOpt := range opts {
 		eachOpt(cOptions)
@@ -38,7 +37,7 @@ func (r *MongoCol) CountByFilter(filter interface{}, opts ...MongodbrCountOption
 	ctx, cancel := CreateContextAndCancelWith(r.configuration, cOptions.WithCtx)
 	defer cancel()
 
-	total, err := r.collection.CountDocuments(ctx, filter, cOptions.CountOptions)
+	total, err := r.collection.CountDocuments(ctx, filter, cOptions)
 	if err != nil {
 		return 0, err
 	}
@@ -71,7 +70,7 @@ func (r *MongoCol) FindAll(list interface{}, opts ...MongodbrFindOption) error {
 func (r *MongoCol) FindListByFilter(filter interface{}, list interface{}, opts ...MongodbrFindOption) error {
 	//设置默认搜索参数
 	findOptions := &MongodbrFindOptions{
-		FindOptions: options.Find(),
+		FindOptions: &options.FindOptions{},
 	}
 	for _, o := range opts {
 		o(findOptions)
@@ -86,7 +85,7 @@ func (r *MongoCol) FindListByFilter(filter interface{}, list interface{}, opts .
 		}
 	}
 
-	cur, err := r.collection.Find(ctx, filter, findOptions.FindOptions)
+	cur, err := r.collection.Find(ctx, filter, findOptions)
 	if err != nil {
 		return err
 	}
@@ -107,7 +106,7 @@ func (r *MongoCol) FindListByFilter(filter interface{}, list interface{}, opts .
 func (r *MongoCol) FindListResultByFilter(filter interface{}, opts ...MongodbrFindOption) IFindResult {
 	//设置默认搜索参数
 	findOptions := &MongodbrFindOptions{
-		FindOptions: options.Find(),
+		FindOptions: &options.FindOptions{},
 	}
 	for _, o := range opts {
 		o(findOptions)
@@ -122,7 +121,7 @@ func (r *MongoCol) FindListResultByFilter(filter interface{}, opts ...MongodbrFi
 		}
 	}
 
-	cur, err := r.collection.Find(ctx, filter, findOptions.FindOptions)
+	cur, err := r.collection.Find(ctx, filter, findOptions)
 	if err != nil {
 		return &findResult{
 			context:       ctx,
@@ -138,7 +137,7 @@ func (r *MongoCol) FindListResultByFilter(filter interface{}, opts ...MongodbrFi
 }
 
 // 根据_id列表来查找，返回的是对象的指针
-func (r *MongoCol) FindListByObjectIdList(idList []primitive.ObjectID, list interface{}, opts ...MongodbrFindOption) error {
+func (r *MongoCol) FindListByObjectIdList(idList []bson.ObjectID, list interface{}, opts ...MongodbrFindOption) error {
 	return r.FindListByFilter(bson.M{"_id": bson.M{
 		"$in": idList,
 	},
@@ -146,7 +145,7 @@ func (r *MongoCol) FindListByObjectIdList(idList []primitive.ObjectID, list inte
 }
 
 // 根据_id来查找，返回的是对象的指针
-func (r *MongoCol) FindOneByObjectId(id primitive.ObjectID, v interface{}, opts ...MongodbrFindOneOption) error {
+func (r *MongoCol) FindOneByObjectId(id bson.ObjectID, v interface{}, opts ...MongodbrFindOneOption) error {
 	return r.FindOne(bson.M{"_id": id}, v, opts...)
 }
 
@@ -154,7 +153,7 @@ func (r *MongoCol) FindOneByObjectId(id primitive.ObjectID, v interface{}, opts 
 func (r *MongoCol) FindOne(filter interface{}, v interface{}, opts ...MongodbrFindOneOption) error {
 	//设置默认搜索参数
 	mOptions := &MongodbrFindOneOptions{
-		FindOneOptions: options.FindOne(),
+		FindOneOptions: &options.FindOneOptions{},
 	}
 	for _, eachOpt := range opts {
 		eachOpt(mOptions)
@@ -163,7 +162,7 @@ func (r *MongoCol) FindOne(filter interface{}, v interface{}, opts ...MongodbrFi
 	defer cancel()
 
 	// find one
-	res := r.collection.FindOne(ctx, filter, mOptions.FindOneOptions)
+	res := r.collection.FindOne(ctx, filter, mOptions)
 	err := res.Err()
 	if err != nil {
 		return err
@@ -187,7 +186,12 @@ func (r *MongoCol) Distinct(fieldName string, filter interface{}, opts ...*WithC
 	ctx, cancel := CreateContextAndCancelWith(r.configuration, cOptions.WithCtx)
 	defer cancel()
 
-	return r.collection.Distinct(ctx, fieldName, filter)
+	result := r.collection.Distinct(ctx, fieldName, filter)
+	values := make([]interface{}, 0)
+	if err := result.Decode(&values); err != nil {
+		return nil, err
+	}
+	return values, nil
 }
 
 // #endregion

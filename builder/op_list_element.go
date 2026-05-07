@@ -1,6 +1,6 @@
 package builder
 
-import "go.mongodb.org/mongo-driver/bson"
+import "go.mongodb.org/mongo-driver/v2/bson"
 
 const (
 	//https://www.mongodb.com/docs/manual/reference/operator/query-element/

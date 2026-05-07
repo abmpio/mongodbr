@@ -1,11 +1,11 @@
 package mongodbr
 
-import "go.mongodb.org/mongo-driver/mongo/options"
+import "go.mongodb.org/mongo-driver/v2/mongo/options"
 
 // aggregate
 func (r *RepositoryBase) Aggregate(pipeline interface{}, dataList interface{}, opts ...MongodbrAggregateOption) (err error) {
 	aOptions := &MongodbrAggregateOptions{
-		AggregateOptions: options.Aggregate(),
+		AggregateOptions: &options.AggregateOptions{},
 	}
 	for _, o := range opts {
 		o(aOptions)
@@ -13,7 +13,7 @@ func (r *RepositoryBase) Aggregate(pipeline interface{}, dataList interface{}, o
 	ctx, cancel := CreateContextAndCancelWith(r.configuration, aOptions.WithCtx)
 	defer cancel()
 
-	cur, err := r.collection.Aggregate(ctx, pipeline, aOptions.AggregateOptions)
+	cur, err := r.collection.Aggregate(ctx, pipeline, aOptions)
 	if err != nil {
 		return err
 	}

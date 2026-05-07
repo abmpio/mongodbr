@@ -2,15 +2,14 @@ package mongodbr
 
 import (
 	"github.com/abmpio/mongodbr/builder"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 // update
 type IEntityUpdate interface {
 	FindOneAndUpdate(entity IEntity, opts ...MongodbrFindOneAndUpdateOption) error
-	FindOneAndUpdateWithId(objectId primitive.ObjectID, update interface{}, opts ...MongodbrFindOneAndUpdateOption) error
+	FindOneAndUpdateWithId(objectId bson.ObjectID, update interface{}, opts ...MongodbrFindOneAndUpdateOption) error
 	UpdateOne(filter interface{}, update interface{}, opts ...MongodbrUpdateOption) error
 	UpdateMany(filter interface{}, update interface{}, opts ...MongodbrUpdateOption) (interface{}, error)
 }
@@ -25,9 +24,8 @@ func (r *MongoCol) FindOneAndUpdate(entity IEntity, opts ...MongodbrFindOneAndUp
 	return r.FindOneAndUpdateWithId(objectId, update, opts...)
 }
 
-func (r *MongoCol) FindOneAndUpdateWithId(objectId primitive.ObjectID, update interface{}, opts ...MongodbrFindOneAndUpdateOption) error {
-	uOptions := options.FindOneAndUpdate()
-	uOptions.SetUpsert(false)
+func (r *MongoCol) FindOneAndUpdateWithId(objectId bson.ObjectID, update interface{}, opts ...MongodbrFindOneAndUpdateOption) error {
+	uOptions := &options.FindOneAndUpdateOptions{Upsert: ptr(false)}
 
 	// handle options
 	mongodbrUOptions := &MongodbrFindOneAndUpdateOptions{
@@ -44,7 +42,7 @@ func (r *MongoCol) FindOneAndUpdateWithId(objectId primitive.ObjectID, update in
 		ctx,
 		bson.M{"_id": objectId},
 		update,
-		mongodbrUOptions.FindOneAndUpdateOptions,
+		mongodbrUOptions,
 	).Err(); err != nil {
 		return err
 	}
@@ -55,7 +53,8 @@ func (r *MongoCol) FindOneAndUpdateWithId(objectId primitive.ObjectID, update in
 func (r *MongoCol) UpdateOne(filter interface{}, update interface{}, opts ...MongodbrUpdateOption) error {
 	// handle options
 	uOptions := &MongodbrUpdateOptions{
-		UpdateOptions: options.Update(),
+		UpdateOneOptions:  &options.UpdateOneOptions{},
+		UpdateManyOptions: &options.UpdateManyOptions{},
 	}
 	for _, eachOpt := range opts {
 		eachOpt(uOptions)
@@ -64,7 +63,7 @@ func (r *MongoCol) UpdateOne(filter interface{}, update interface{}, opts ...Mon
 	ctx, cancel := CreateContextAndCancelWith(r.configuration, uOptions.WithCtx)
 	defer cancel()
 
-	_, err := r.collection.UpdateOne(ctx, filter, update, uOptions.UpdateOptions)
+	_, err := r.collection.UpdateOne(ctx, filter, update, asOptionLister(uOptions.UpdateOneOptions))
 	if err != nil {
 		return err
 	}
@@ -75,7 +74,8 @@ func (r *MongoCol) UpdateOne(filter interface{}, update interface{}, opts ...Mon
 func (r *MongoCol) UpdateMany(filter interface{}, update interface{}, opts ...MongodbrUpdateOption) (interface{}, error) {
 	// handle options
 	uOptions := &MongodbrUpdateOptions{
-		UpdateOptions: options.Update(),
+		UpdateOneOptions:  &options.UpdateOneOptions{},
+		UpdateManyOptions: &options.UpdateManyOptions{},
 	}
 	for _, eachOpt := range opts {
 		eachOpt(uOptions)
@@ -84,7 +84,7 @@ func (r *MongoCol) UpdateMany(filter interface{}, update interface{}, opts ...Mo
 	ctx, cancel := CreateContextAndCancelWith(r.configuration, uOptions.WithCtx)
 	defer cancel()
 
-	result, err := r.collection.UpdateMany(ctx, filter, update, uOptions.UpdateOptions)
+	result, err := r.collection.UpdateMany(ctx, filter, update, asOptionLister(uOptions.UpdateManyOptions))
 	if err != nil {
 		if result != nil {
 			return result.UpsertedID, err

@@ -4,10 +4,9 @@ import (
 	"errors"
 	"fmt"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type MongoCol struct {
@@ -58,13 +57,13 @@ func NewRepositoryBase(getDbCollection func() *mongo.Collection, opts ...Reposit
 
 // #region create members
 
-func (r *RepositoryBase) Create(item interface{}, opts ...MongodbrInsertOneOption) (id primitive.ObjectID, err error) {
+func (r *RepositoryBase) Create(item interface{}, opts ...MongodbrInsertOneOption) (id bson.ObjectID, err error) {
 	if item == nil {
-		return primitive.NilObjectID, fmt.Errorf("item is nil,col:%s", r.documentName)
+		return bson.NilObjectID, fmt.Errorf("item is nil,col:%s", r.documentName)
 	}
 
 	insertOneOptions := &MongodbrInsertOneOptions{
-		InsertOneOptions: options.InsertOne(),
+		InsertOneOptions: &options.InsertOneOptions{},
 	}
 	for _, o := range opts {
 		o(insertOneOptions)
@@ -73,23 +72,23 @@ func (r *RepositoryBase) Create(item interface{}, opts ...MongodbrInsertOneOptio
 	defer cancel()
 
 	r.onBeforeCreate(item)
-	res, err := r.collection.InsertOne(ctx, item, insertOneOptions.InsertOneOptions)
+	res, err := r.collection.InsertOne(ctx, item, insertOneOptions)
 	if err != nil {
-		return primitive.NilObjectID, err
+		return bson.NilObjectID, err
 	}
-	if id, ok := res.InsertedID.(primitive.ObjectID); ok {
+	if id, ok := res.InsertedID.(bson.ObjectID); ok {
 		return id, nil
 	}
-	return primitive.NilObjectID, ErrInvalidType
+	return bson.NilObjectID, ErrInvalidType
 }
 
-func (r *RepositoryBase) CreateMany(itemList []interface{}, opts ...MongodbrInsertManyOption) (ids []primitive.ObjectID, err error) {
+func (r *RepositoryBase) CreateMany(itemList []interface{}, opts ...MongodbrInsertManyOption) (ids []bson.ObjectID, err error) {
 	if len(itemList) <= 0 {
 		return nil, nil
 	}
 
 	insertManyOptions := &MongodbrInsertManyOptions{
-		InsertManyOptions: options.InsertMany(),
+		InsertManyOptions: &options.InsertManyOptions{},
 	}
 	for _, o := range opts {
 		o(insertManyOptions)
@@ -100,13 +99,13 @@ func (r *RepositoryBase) CreateMany(itemList []interface{}, opts ...MongodbrInse
 	for index := range itemList {
 		r.onBeforeCreate(itemList[index])
 	}
-	res, err := r.collection.InsertMany(ctx, itemList, insertManyOptions.InsertManyOptions)
+	res, err := r.collection.InsertMany(ctx, itemList, insertManyOptions)
 	if err != nil {
 		return nil, err
 	}
 	for _, v := range res.InsertedIDs {
 		switch v := v.(type) {
-		case primitive.ObjectID:
+		case bson.ObjectID:
 			ids = append(ids, v)
 		default:
 			return nil, ErrInvalidType
@@ -117,13 +116,13 @@ func (r *RepositoryBase) CreateMany(itemList []interface{}, opts ...MongodbrInse
 
 // #endregion
 
-func (r *RepositoryBase) ReplaceById(id primitive.ObjectID, doc interface{}, opts ...MongodbrReplaceOption) (err error) {
+func (r *RepositoryBase) ReplaceById(id bson.ObjectID, doc interface{}, opts ...MongodbrReplaceOption) (err error) {
 	return r.Replace(bson.M{"_id": id}, doc, opts...)
 }
 
 func (r *RepositoryBase) Replace(filter interface{}, doc interface{}, opts ...MongodbrReplaceOption) (err error) {
 	rOptions := &MongodbrReplaceOptions{
-		ReplaceOptions: options.Replace(),
+		ReplaceOptions: &options.ReplaceOptions{},
 	}
 	for _, o := range opts {
 		o(rOptions)
@@ -131,7 +130,7 @@ func (r *RepositoryBase) Replace(filter interface{}, doc interface{}, opts ...Mo
 	ctx, cancel := CreateContextAndCancelWith(r.configuration, rOptions.WithCtx)
 	defer cancel()
 
-	_, err = r.collection.ReplaceOne(ctx, filter, doc, rOptions.ReplaceOptions)
+	_, err = r.collection.ReplaceOne(ctx, filter, doc, rOptions)
 	if err != nil {
 		return err
 	}
@@ -139,9 +138,10 @@ func (r *RepositoryBase) Replace(filter interface{}, doc interface{}, opts ...Mo
 }
 
 // 删除指定id的记录
-func (r *RepositoryBase) DeleteOne(id primitive.ObjectID, opts ...MongodbrDeleteOption) (*mongo.DeleteResult, error) {
+func (r *RepositoryBase) DeleteOne(id bson.ObjectID, opts ...MongodbrDeleteOption) (*mongo.DeleteResult, error) {
 	deleteOptions := &MongodbrDeleteOptions{
-		DeleteOptions: options.Delete(),
+		DeleteOneOptions:  &options.DeleteOneOptions{},
+		DeleteManyOptions: &options.DeleteManyOptions{},
 	}
 	for _, o := range opts {
 		o(deleteOptions)
@@ -149,7 +149,7 @@ func (r *RepositoryBase) DeleteOne(id primitive.ObjectID, opts ...MongodbrDelete
 	ctx, cancel := CreateContextAndCancelWith(r.configuration, deleteOptions.WithCtx)
 	defer cancel()
 
-	result, err := r.collection.DeleteOne(ctx, bson.M{"_id": id}, deleteOptions.DeleteOptions)
+	result, err := r.collection.DeleteOne(ctx, bson.M{"_id": id}, asOptionLister(deleteOptions.DeleteOneOptions))
 	if err != nil {
 		return result, err
 	}
@@ -160,7 +160,8 @@ func (r *RepositoryBase) DeleteOne(id primitive.ObjectID, opts ...MongodbrDelete
 // 删除指定条件的一条记录
 func (r *RepositoryBase) DeleteOneByFilter(filter interface{}, opts ...MongodbrDeleteOption) (*mongo.DeleteResult, error) {
 	deleteOptions := &MongodbrDeleteOptions{
-		DeleteOptions: options.Delete(),
+		DeleteOneOptions:  &options.DeleteOneOptions{},
+		DeleteManyOptions: &options.DeleteManyOptions{},
 	}
 	for _, o := range opts {
 		o(deleteOptions)
@@ -168,7 +169,7 @@ func (r *RepositoryBase) DeleteOneByFilter(filter interface{}, opts ...MongodbrD
 	ctx, cancel := CreateContextAndCancelWith(r.configuration, deleteOptions.WithCtx)
 	defer cancel()
 
-	result, err := r.collection.DeleteOne(ctx, filter, deleteOptions.DeleteOptions)
+	result, err := r.collection.DeleteOne(ctx, filter, asOptionLister(deleteOptions.DeleteOneOptions))
 	if err != nil {
 		return result, err
 	}
@@ -183,7 +184,8 @@ func (r *RepositoryBase) DeleteMany(filter interface{}, opts ...MongodbrDeleteOp
 		return nil, err
 	}
 	deleteOptions := &MongodbrDeleteOptions{
-		DeleteOptions: options.Delete(),
+		DeleteOneOptions:  &options.DeleteOneOptions{},
+		DeleteManyOptions: &options.DeleteManyOptions{},
 	}
 	for _, o := range opts {
 		o(deleteOptions)
@@ -191,7 +193,7 @@ func (r *RepositoryBase) DeleteMany(filter interface{}, opts ...MongodbrDeleteOp
 	ctx, cancel := CreateContextAndCancelWith(r.configuration, deleteOptions.WithCtx)
 	defer cancel()
 
-	result, err := r.collection.DeleteMany(ctx, filter, deleteOptions.DeleteOptions)
+	result, err := r.collection.DeleteMany(ctx, filter, asOptionLister(deleteOptions.DeleteManyOptions))
 	if err != nil {
 		return result, err
 	}

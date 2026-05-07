@@ -1,6 +1,6 @@
 package err
 
-import "go.mongodb.org/mongo-driver/mongo"
+import "go.mongodb.org/mongo-driver/v2/mongo"
 
 func IsDuplicateKeyError(err error) bool {
 	// TODO: maybe there is (or will be) a better way of checking duplicate key error

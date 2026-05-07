@@ -5,9 +5,7 @@ import (
 	"reflect"
 
 	uuid "github.com/satori/go.uuid"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/bsoncodec"
-	"go.mongodb.org/mongo-driver/bson/bsonrw"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 var (
@@ -16,18 +14,18 @@ var (
 )
 
 // 自定义uuid的序列化
-func uuidEncodeValue(ec bsoncodec.EncodeContext, vw bsonrw.ValueWriter, val reflect.Value) error {
+func uuidEncodeValue(ec bson.EncodeContext, vw bson.ValueWriter, val reflect.Value) error {
 	if !val.IsValid() || val.Type() != _tUUID {
-		return bsoncodec.ValueEncoderError{Name: "uuidEncodeValue", Types: []reflect.Type{_tUUID}, Received: val}
+		return bson.ValueEncoderError{Name: "uuidEncodeValue", Types: []reflect.Type{_tUUID}, Received: val}
 	}
 	b := val.Interface().(uuid.UUID)
 	return vw.WriteBinaryWithSubtype(b[:], _uuidSubtype)
 }
 
 // 自定义uuid的反序列化
-func uuidDecodeValue(dc bsoncodec.DecodeContext, vr bsonrw.ValueReader, val reflect.Value) error {
+func uuidDecodeValue(dc bson.DecodeContext, vr bson.ValueReader, val reflect.Value) error {
 	if !val.CanSet() || val.Type() != _tUUID {
-		return bsoncodec.ValueDecoderError{Name: "uuidDecodeValue", Types: []reflect.Type{_tUUID}, Received: val}
+		return bson.ValueDecoderError{Name: "uuidDecodeValue", Types: []reflect.Type{_tUUID}, Received: val}
 	}
 
 	var data []byte
@@ -58,8 +56,8 @@ func uuidDecodeValue(dc bsoncodec.DecodeContext, vr bsonrw.ValueReader, val refl
 	return nil
 }
 
-// // 自定义 time.Time 反序列化（用于反序列化 primitive.DateTime -> time.Time）
-// func timeDecodeValue(dc bsoncodec.DecodeContext, vr bsonrw.ValueReader, val reflect.Value) error {
+// // 自定义 time.Time 反序列化（用于反序列化 bson.DateTime -> time.Time）
+// func timeDecodeValue(dc bson.DecodeContext, vr bson.ValueReader, val reflect.Value) error {
 // 	// 验证 BSON 值的类型为 DateTime
 // 	if vr.Type() != bson.TypeDateTime {
 // 		return fmt.Errorf("cannot decode non-date-time BSON value into time.Time")
@@ -84,7 +82,7 @@ func uuidDecodeValue(dc bsoncodec.DecodeContext, vr bsonrw.ValueReader, val refl
 // 		if val.Type() == reflect.TypeOf(time.Time{}) {
 // 			val.Set(reflect.ValueOf(t))
 // 		} else {
-// 			return bsoncodec.ValueDecoderError{Name: "timeDecoder", Types: []reflect.Type{reflect.TypeOf(time.Time{})}, Received: val}
+// 			return bson.ValueDecoderError{Name: "timeDecoder", Types: []reflect.Type{reflect.TypeOf(time.Time{})}, Received: val}
 // 		}
 
 // 	case reflect.Ptr:
@@ -97,11 +95,11 @@ func uuidDecodeValue(dc bsoncodec.DecodeContext, vr bsonrw.ValueReader, val refl
 // 			// 设置解码后的值
 // 			val.Elem().Set(reflect.ValueOf(t))
 // 		} else {
-// 			return bsoncodec.ValueDecoderError{Name: "timeDecoder", Types: []reflect.Type{reflect.TypeOf(time.Time{}), reflect.TypeOf(&time.Time{})}, Received: val}
+// 			return bson.ValueDecoderError{Name: "timeDecoder", Types: []reflect.Type{reflect.TypeOf(time.Time{}), reflect.TypeOf(&time.Time{})}, Received: val}
 // 		}
 
 // 	default:
-// 		return bsoncodec.ValueDecoderError{Name: "timeDecoder", Types: []reflect.Type{reflect.TypeOf(time.Time{}), reflect.TypeOf(&time.Time{})}, Received: val}
+// 		return bson.ValueDecoderError{Name: "timeDecoder", Types: []reflect.Type{reflect.TypeOf(time.Time{}), reflect.TypeOf(&time.Time{})}, Received: val}
 // 	}
 // 	return nil
 // }
