@@ -1,10 +1,9 @@
 package mongodbr
 
 import (
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	"github.com/abmpio/mongodbr/builder"
 )
@@ -35,7 +34,7 @@ func _buildWriteModelForUpdate(list []IEntity) []mongo.WriteModel {
 }
 
 // build mongo.WriteModel list with ObjectId list
-func BuildWriteModelListWithObjectId(dataList map[primitive.ObjectID]interface{}) []mongo.WriteModel {
+func BuildWriteModelListWithObjectId(dataList map[bson.ObjectID]interface{}) []mongo.WriteModel {
 	modelList := make([]mongo.WriteModel, 0)
 	if len(dataList) <= 0 {
 		return modelList
@@ -73,7 +72,7 @@ func (c *MongoCol) BulkWrite(models []mongo.WriteModel, opts ...MongodbrBulkWrit
 	}
 
 	bulkWriteOptions := &MongodbrBulkWriteOptions{
-		BulkWriteOptions: options.BulkWrite(),
+		BulkWriteOptions: &options.BulkWriteOptions{},
 	}
 	for _, o := range opts {
 		o(bulkWriteOptions)
@@ -84,7 +83,7 @@ func (c *MongoCol) BulkWrite(models []mongo.WriteModel, opts ...MongodbrBulkWrit
 	res, err := c.collection.BulkWrite(
 		ctx,
 		models,
-		bulkWriteOptions.BulkWriteOptions,
+		bulkWriteOptions,
 	)
 	if err != nil {
 		return res, err

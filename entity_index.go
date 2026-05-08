@@ -1,8 +1,8 @@
 package mongodbr
 
 import (
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type IEntityIndex interface {
@@ -24,11 +24,27 @@ var _ IEntityIndex = (*MongoCol)(nil)
 func (r *MongoCol) CreateIndex(indexModel mongo.IndexModel, opts ...*options.CreateIndexesOptions) (string, error) {
 	ctx, cancel := CreateContextAndCancel(r.configuration)
 	defer cancel()
-	name, err := r.collection.Indexes().CreateOne(ctx, indexModel, opts...)
+	name, err := r.collection.Indexes().CreateOne(ctx, indexModel, asOptionListers(opts)...)
 	if err != nil {
 		return "", err
 	}
 	return name, nil
+}
+
+func indexModelName(indexModel mongo.IndexModel) (string, bool, error) {
+	if indexModel.Options == nil {
+		return "", false, nil
+	}
+	indexOptions := &options.IndexOptions{}
+	for _, applyOption := range indexModel.Options.List() {
+		if err := applyOption(indexOptions); err != nil {
+			return "", false, err
+		}
+	}
+	if indexOptions.Name == nil {
+		return "", false, nil
+	}
+	return *indexOptions.Name, true, nil
 }
 
 func (r *MongoCol) CreateIndexes(indexModelList []mongo.IndexModel, opts ...*options.CreateIndexesOptions) ([]string, error) {
@@ -37,8 +53,10 @@ func (r *MongoCol) CreateIndexes(indexModelList []mongo.IndexModel, opts ...*opt
 
 	notExistList := make([]mongo.IndexModel, 0)
 	for _, eachIndexModel := range indexModelList {
-		if eachIndexModel.Options != nil && eachIndexModel.Options.Name != nil {
-			exist, err := r.ExistIndex(*eachIndexModel.Options.Name)
+		if indexName, ok, err := indexModelName(eachIndexModel); err != nil {
+			return nil, err
+		} else if ok {
+			exist, err := r.ExistIndex(indexName)
 			if err != nil {
 				return nil, err
 			}
@@ -50,7 +68,7 @@ func (r *MongoCol) CreateIndexes(indexModelList []mongo.IndexModel, opts ...*opt
 		notExistList = append(notExistList, eachIndexModel)
 	}
 	if len(notExistList) > 0 {
-		return r.collection.Indexes().CreateMany(ctx, indexModelList, opts...)
+		return r.collection.Indexes().CreateMany(ctx, indexModelList, asOptionListers(opts)...)
 	}
 	return []string{}, nil
 }
@@ -67,7 +85,7 @@ func (r *MongoCol) DeleteIndex(name string) (err error) {
 	ctx, cancel := CreateContextAndCancel(r.configuration)
 	defer cancel()
 
-	_, err = r.collection.Indexes().DropOne(ctx, name)
+	err = r.collection.Indexes().DropOne(ctx, name)
 	if err != nil {
 		return err
 	}
@@ -78,7 +96,7 @@ func (r *MongoCol) DeleteAllIndexes() (err error) {
 	ctx, cancel := CreateContextAndCancel(r.configuration)
 	defer cancel()
 
-	_, err = r.collection.Indexes().DropAll(ctx)
+	err = r.collection.Indexes().DropAll(ctx)
 	if err != nil {
 		return err
 	}

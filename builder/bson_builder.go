@@ -2,7 +2,7 @@ package builder
 
 import (
 	"github.com/abmpio/libx/lang/tuple"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 const (

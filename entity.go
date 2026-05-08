@@ -1,18 +1,18 @@
 package mongodbr
 
 import (
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type Entity struct {
-	ObjectId primitive.ObjectID `json:"objectId,omitempty" bson:"_id"`
+	ObjectId bson.ObjectID `json:"objectId,omitempty" bson:"_id"`
 }
 
 // modify IEntity object
 type EntityOption = func(e IEntity)
 
 type IEntity interface {
-	GetObjectId() primitive.ObjectID
+	GetObjectId() bson.ObjectID
 }
 
 type IEntityBeforeCreate interface {
@@ -25,11 +25,11 @@ type IEntityBeforeUpdate interface {
 
 // 创建时设置对象的基本信息
 func (entity *Entity) BeforeCreate() {
-	if entity.ObjectId == primitive.NilObjectID {
-		entity.ObjectId = primitive.NewObjectID()
+	if entity.ObjectId == bson.NilObjectID {
+		entity.ObjectId = bson.NewObjectID()
 	}
 }
 
-func (entity Entity) GetObjectId() primitive.ObjectID {
+func (entity Entity) GetObjectId() bson.ObjectID {
 	return entity.ObjectId
 }

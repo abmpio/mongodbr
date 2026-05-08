@@ -1,13 +1,11 @@
 package mongodbr
 
 import (
-	"context"
 	"fmt"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/bsoncodec"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 var (
@@ -47,13 +45,13 @@ func CreateClient(uri string, opts ...func(*options.ClientOptions)) (*mongo.Clie
 	mongoRegistry := bson.NewRegistry()
 	continRegistry := false
 	if !_ignoreUUIDDecoder {
-		mongoRegistry.RegisterTypeEncoder(_tUUID, bsoncodec.ValueEncoderFunc(uuidEncodeValue))
-		mongoRegistry.RegisterTypeDecoder(_tUUID, bsoncodec.ValueDecoderFunc(uuidDecodeValue))
+		mongoRegistry.RegisterTypeEncoder(_tUUID, bson.ValueEncoderFunc(uuidEncodeValue))
+		mongoRegistry.RegisterTypeDecoder(_tUUID, bson.ValueDecoderFunc(uuidDecodeValue))
 		continRegistry = true
 	}
 	if !_ignoreTimeDecoder {
 		// registryBuilder = registryBuilder.
-		// 	RegisterTypeDecoder(reflect.TypeOf(time.Time{}), bsoncodec.ValueDecoderFunc(timeDecodeValue))
+		// 	RegisterTypeDecoder(reflect.TypeOf(time.Time{}), bson.ValueDecoderFunc(timeDecodeValue))
 		// continRegistry = true
 	}
 
@@ -66,7 +64,7 @@ func CreateClient(uri string, opts ...func(*options.ClientOptions)) (*mongo.Clie
 		eachOpt(clientOptions)
 	}
 
-	client, err := mongo.Connect(context.TODO(), clientOptions)
+	client, err := mongo.Connect(clientOptions)
 	if err != nil {
 		return nil, nil, fmt.Errorf("无法初始化mongodb,在连接到mongodb时出现异常,异常信息:%s", err.Error())
 	}

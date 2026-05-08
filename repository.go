@@ -3,9 +3,9 @@ package mongodbr
 import (
 	"fmt"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type NewRepositoryOption struct {
@@ -51,7 +51,8 @@ func NewRepository(databaseName string, collectionName string, opts ...func(*New
 	mongodbrOpts := make([]RepositoryOption, 0)
 	if len(o.DefaultSortField) > 0 {
 		mongodbrOpts = append(mongodbrOpts, WithDefaultSort(func(fo *options.FindOptions) *options.FindOptions {
-			return fo.SetSort(bson.D{{Key: o.DefaultSortField, Value: -1}})
+			fo.Sort = bson.D{{Key: o.DefaultSortField, Value: -1}}
+			return fo
 		}))
 	}
 	repositoryBase, err := NewRepositoryBase(func() *mongo.Collection {

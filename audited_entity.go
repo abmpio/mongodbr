@@ -3,7 +3,7 @@ package mongodbr
 import (
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type ICreationAuditedEntity interface {
@@ -54,7 +54,7 @@ type AuditedEntity struct {
 	LastModifierId string `json:"lastModifierId,omitempty" bson:"lastModifierId"`
 }
 
-func (e AuditedEntity) GetObjectId() primitive.ObjectID {
+func (e AuditedEntity) GetObjectId() bson.ObjectID {
 	return e.ObjectId
 }
 

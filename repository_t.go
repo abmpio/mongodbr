@@ -3,12 +3,12 @@ package mongodbr
 import (
 	"errors"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 // find one T by _id
-func FindTByObjectId[T any](repository IRepository, id primitive.ObjectID, opts ...MongodbrFindOneOption) (*T, error) {
+func FindTByObjectId[T any](repository IRepository, id bson.ObjectID, opts ...MongodbrFindOneOption) (*T, error) {
 	result := new(T)
 	err := repository.FindOneByObjectId(id, result, opts...)
 	if err != nil {
@@ -55,7 +55,7 @@ func FindTByFilter[T any](repository IRepository, filter interface{}, opts ...Mo
 }
 
 // find list T by _id list
-func FindTListByObjectIdList[T any](repository IRepository, idList []primitive.ObjectID, opts ...MongodbrFindOption) ([]*T, error) {
+func FindTListByObjectIdList[T any](repository IRepository, idList []bson.ObjectID, opts ...MongodbrFindOption) ([]*T, error) {
 	list := make([]*T, 0)
 	err := repository.FindListByObjectIdList(idList, &list, opts...)
 	if err != nil {

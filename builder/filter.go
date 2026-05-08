@@ -1,6 +1,6 @@
 package builder
 
-import "go.mongodb.org/mongo-driver/bson"
+import "go.mongodb.org/mongo-driver/v2/bson"
 
 // build filter for regex
 func Filter_Regex(filter map[string]interface{}, key string, v interface{}) map[string]interface{} {

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
 
 // get mongo.Database instance
@@ -15,7 +15,7 @@ func GetDatabase(databaseName string, opts ...*options.DatabaseOptions) *mongo.D
 	if DefaultClient() == nil || len(databaseName) <= 0 {
 		return nil
 	}
-	return DefaultClient().Database(databaseName, opts...)
+	return DefaultClient().Database(databaseName, asOptionListers(opts)...)
 }
 
 // get mongo.Database instance
@@ -27,7 +27,7 @@ func GetDatabaseByKey(key string, databaseName string, opts ...*options.Database
 	if len(databaseName) <= 0 {
 		return nil
 	}
-	return client.Database(databaseName, opts...)
+	return client.Database(databaseName, asOptionListers(opts)...)
 }
 
 // get mongo.Collection instanc
@@ -39,7 +39,7 @@ func GetCollection(databaseName string, collectionName string, opts ...*options.
 	if len(collectionName) <= 0 {
 		return nil
 	}
-	return database.Collection(collectionName, opts...)
+	return database.Collection(collectionName, asOptionListers(opts)...)
 }
 
 func GetCollectionByKey(key string, databaseName string, collectionName string, opts ...*options.CollectionOptions) *mongo.Collection {
@@ -50,7 +50,7 @@ func GetCollectionByKey(key string, databaseName string, collectionName string, 
 	if len(collectionName) <= 0 {
 		return nil
 	}
-	return database.Collection(collectionName, opts...)
+	return database.Collection(collectionName, asOptionListers(opts)...)
 }
 
 func Ping(client *mongo.Client) error {

@@ -1,8 +1,7 @@
 package mongodbr
 
 import (
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type ConvertPrimitiveDToMapOptions struct {
@@ -10,7 +9,7 @@ type ConvertPrimitiveDToMapOptions struct {
 	ConvertPrimitiveDToMap bool
 }
 
-func _bsonDToMap(d primitive.D) map[string]interface{} {
+func _bsonDToMap(d bson.D) map[string]interface{} {
 	m := make(map[string]interface{})
 	for _, elem := range d {
 		m[elem.Key] = elem.Value
@@ -19,7 +18,7 @@ func _bsonDToMap(d primitive.D) map[string]interface{} {
 }
 
 // bsonDToMap 将 bson.D 转换为 map[string]interface{}
-func bsonDToMap(d primitive.D, opts ...ConvertPrimitiveDToMapOptions) map[string]interface{} {
+func bsonDToMap(d bson.D, opts ...ConvertPrimitiveDToMapOptions) map[string]interface{} {
 	options := ConvertPrimitiveDToMapOptions{}
 	if len(opts) > 0 {
 		options = opts[len(opts)-1]
@@ -28,14 +27,14 @@ func bsonDToMap(d primitive.D, opts ...ConvertPrimitiveDToMapOptions) map[string
 	for _, elem := range d {
 		elemValue := elem.Value
 		if options.ConvertPrimitiveAToMap {
-			array, ok := elem.Value.(primitive.A)
+			array, ok := elem.Value.(bson.A)
 			if ok {
 				// 将其转换为map[string]interface{}
 				elemValue = ConvertPrimitiveAToMap(array)
 			}
 		}
 		if options.ConvertPrimitiveDToMap {
-			dValue, ok := elem.Value.(primitive.D)
+			dValue, ok := elem.Value.(bson.D)
 			if ok {
 				elemValue = _bsonDToMap(dValue)
 			}
@@ -46,7 +45,7 @@ func bsonDToMap(d primitive.D, opts ...ConvertPrimitiveDToMapOptions) map[string
 }
 
 // bsonAToMap 将 bson.A 转换为 map[string]interface{}
-func bsonAToMap(a primitive.A) map[string]interface{} {
+func bsonAToMap(a bson.A) map[string]interface{} {
 	result := make(map[string]interface{})
 	// 遍历数组
 	for _, item := range a {
@@ -72,14 +71,14 @@ func bsonAToMap(a primitive.A) map[string]interface{} {
 	return result
 }
 
-func ConvertPrimitiveDToMap(d primitive.D, opts ...ConvertPrimitiveDToMapOptions) map[string]interface{} {
+func ConvertPrimitiveDToMap(d bson.D, opts ...ConvertPrimitiveDToMapOptions) map[string]interface{} {
 	return bsonDToMap(d, opts...)
 }
 
 // 将[]interface{}中的值转换为map[string]interface{}
 func ConvertPrimitiveAToMap(v interface{}) map[string]interface{} {
 	// 确保输入是 []interface{}
-	a, ok := v.(primitive.A)
+	a, ok := v.(bson.A)
 	if !ok {
 		return make(map[string]interface{})
 	}
@@ -87,15 +86,15 @@ func ConvertPrimitiveAToMap(v interface{}) map[string]interface{} {
 }
 
 // convert value to map
-// only when v is primitive.D or primitive.A
+// only when v is bson.D or bson.A
 func ConvertValueToMap(v interface{}) map[string]interface{} {
 	if v == nil {
 		return nil
 	}
 	switch value := v.(type) {
-	case primitive.D:
+	case bson.D:
 		return bsonDToMap(value)
-	case primitive.A:
+	case bson.A:
 		return bsonAToMap(value)
 	default:
 		// other return nil

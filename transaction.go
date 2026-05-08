@@ -7,8 +7,8 @@ import (
 	"log"
 	"time"
 
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type RunTransactionOptions struct {
@@ -67,13 +67,13 @@ func newDefaultRunTransactionOptions() *RunTransactionOptions {
 	}
 }
 
-func RunTransaction(fn func(mongo.SessionContext) error, opts ...RunTransactionOption) error {
+func RunTransaction(fn func(context.Context) error, opts ...RunTransactionOption) error {
 	return RunTransactionWithContext(context.Background(), fn, opts...)
 }
 
 // run fn with mongodb transaction
 func RunTransactionWithContext(ctx context.Context,
-	fn func(mongo.SessionContext) error,
+	fn func(context.Context) error,
 	opts ...RunTransactionOption) error {
 
 	transactionOptions := newDefaultRunTransactionOptions()
@@ -90,7 +90,7 @@ func RunTransactionWithContext(ctx context.Context,
 	c := GetClient(transactionOptions.ClientKey)
 
 	// start session
-	session, err := c.StartSession(transactionOptions.withSessionOptions...)
+	session, err := c.StartSession(asOptionListers(transactionOptions.withSessionOptions)...)
 	if err != nil {
 		return err
 	}
@@ -113,9 +113,9 @@ func RunTransactionWithContext(ctx context.Context,
 			defer cancel()
 
 			// perform operation
-			err = mongo.WithSession(txnCtx, session, func(sc mongo.SessionContext) error {
+			err = mongo.WithSession(txnCtx, session, func(sc context.Context) error {
 				// start transaction
-				if err := session.StartTransaction(transactionOptions.withTransactionOptions...); err != nil {
+				if err := session.StartTransaction(asOptionListers(transactionOptions.withTransactionOptions)...); err != nil {
 					return err
 				}
 
@@ -135,7 +135,7 @@ func RunTransactionWithContext(ctx context.Context,
 					return innerErr
 				}
 
-				return sc.CommitTransaction(sc)
+				return session.CommitTransaction(sc)
 			})
 		}()
 		if err == nil {
@@ -154,13 +154,13 @@ func RunTransactionWithContext(ctx context.Context,
 	return fmt.Errorf("RunTransactionWithContext: transaction failed after %d attempts, last error: %w", maxRetry, err)
 }
 
-func RunTransactionWithResult[T any](fn func(mongo.SessionContext) (T, error), opts ...RunTransactionOption) (T, error) {
+func RunTransactionWithResult[T any](fn func(context.Context) (T, error), opts ...RunTransactionOption) (T, error) {
 	return RunTransactionWithResultWithContext(context.Background(), fn, opts...)
 }
 
 // run fn with mongodb transaction
 func RunTransactionWithResultWithContext[T any](ctx context.Context,
-	fn func(mongo.SessionContext) (T, error),
+	fn func(context.Context) (T, error),
 	opts ...RunTransactionOption) (T, error) {
 
 	var zero T
@@ -176,7 +176,7 @@ func RunTransactionWithResultWithContext[T any](ctx context.Context,
 	c := GetClient(transactionOptions.ClientKey)
 
 	// start session
-	session, err := c.StartSession(transactionOptions.withSessionOptions...)
+	session, err := c.StartSession(asOptionListers(transactionOptions.withSessionOptions)...)
 	if err != nil {
 		return zero, err
 	}
@@ -190,9 +190,9 @@ func RunTransactionWithResultWithContext[T any](ctx context.Context,
 		var result T
 
 		// perform operation
-		err = mongo.WithSession(txnCtx, session, func(sc mongo.SessionContext) error {
+		err = mongo.WithSession(txnCtx, session, func(sc context.Context) error {
 			// start transaction
-			if err := session.StartTransaction(transactionOptions.withTransactionOptions...); err != nil {
+			if err := session.StartTransaction(asOptionListers(transactionOptions.withTransactionOptions)...); err != nil {
 				return err
 			}
 
@@ -203,7 +203,7 @@ func RunTransactionWithResultWithContext[T any](ctx context.Context,
 				_ = session.AbortTransaction(sc)
 				return innerErr
 			}
-			if err := sc.CommitTransaction(sc); err != nil {
+			if err := session.CommitTransaction(sc); err != nil {
 				return err
 			}
 			return nil

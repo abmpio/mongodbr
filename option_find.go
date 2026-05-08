@@ -3,8 +3,8 @@ package mongodbr
 import (
 	"context"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type MongodbrFindOptions struct {
@@ -16,14 +16,19 @@ type MongodbrFindOption func(*MongodbrFindOptions)
 
 func (o *MongodbrFindOptions) ensureFindOptionsInit() {
 	if o.FindOptions == nil {
-		o.FindOptions = options.Find()
+		o.FindOptions = &options.FindOptions{}
 	}
+}
+
+func (o *MongodbrFindOptions) List() []func(*options.FindOptions) error {
+	o.ensureFindOptionsInit()
+	return asOptionLister(o.FindOptions).List()
 }
 
 // merge MongodbrFindOption list and return one *MongodbrFindOptions
 func MergeMongodbrFindOption(opts ...MongodbrFindOption) *MongodbrFindOptions {
 	o := &MongodbrFindOptions{
-		FindOptions: options.Find(),
+		FindOptions: &options.FindOptions{},
 	}
 	for _, eachOpt := range opts {
 		eachOpt(o)
@@ -42,7 +47,7 @@ func MongodbrFindOptionWithContext(ctx context.Context) MongodbrFindOption {
 func MongodbrFindOptionWithSkip(skip int64) MongodbrFindOption {
 	return func(fo *MongodbrFindOptions) {
 		fo.ensureFindOptionsInit()
-		fo.SetSkip(skip)
+		fo.Skip = ptr(skip)
 	}
 }
 
@@ -50,7 +55,7 @@ func MongodbrFindOptionWithSkip(skip int64) MongodbrFindOption {
 func MongodbrFindOptionWithLimit(limit int64) MongodbrFindOption {
 	return func(fo *MongodbrFindOptions) {
 		fo.ensureFindOptionsInit()
-		fo.SetLimit(limit)
+		fo.Limit = ptr(limit)
 	}
 }
 
@@ -59,7 +64,7 @@ func MongodbrFindOptionWithSort(sort bson.D) MongodbrFindOption {
 	return func(fo *MongodbrFindOptions) {
 		fo.ensureFindOptionsInit()
 		if len(sort) > 0 {
-			fo.SetSort(sort)
+			fo.Sort = sort
 		}
 	}
 }
@@ -68,11 +73,11 @@ func MongodbrFindOptionWithSort(sort bson.D) MongodbrFindOption {
 func MongodbrFindOptionWithPage(pageIndex int64, pageSize int64) MongodbrFindOption {
 	return func(fo *MongodbrFindOptions) {
 		fo.ensureFindOptionsInit()
-		fo.SetLimit(pageSize)
+		fo.Limit = ptr(pageSize)
 		if pageIndex < 1 {
 			pageIndex = 1
 		}
-		fo.SetSkip(pageSize * (pageIndex - 1))
+		fo.Skip = ptr(pageSize * (pageIndex - 1))
 	}
 }
 
@@ -87,7 +92,7 @@ func MongodbrFindOptionWithSpecifiedFields(fieldNameList []string) MongodbrFindO
 		for _, eachFieldName := range fieldNameList {
 			projection[eachFieldName] = 1
 		}
-		fo.SetProjection(projection)
+		fo.Projection = projection
 	}
 }
 
@@ -110,6 +115,6 @@ func MongodbrFindOptionWithFieldSort(fieldName string, isAsc bool) MongodbrFindO
 			Key:   fieldName,
 			Value: sortValue,
 		})
-		fo.SetSort(sortV)
+		fo.Sort = sortV
 	}
 }

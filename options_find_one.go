@@ -3,8 +3,8 @@ package mongodbr
 import (
 	"context"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type MongodbrFindOneOptions struct {
@@ -16,14 +16,19 @@ type MongodbrFindOneOption func(*MongodbrFindOneOptions)
 
 func (o *MongodbrFindOneOptions) ensureFindOneOptionsInit() {
 	if o.FindOneOptions == nil {
-		o.FindOneOptions = options.FindOne()
+		o.FindOneOptions = &options.FindOneOptions{}
 	}
+}
+
+func (o *MongodbrFindOneOptions) List() []func(*options.FindOneOptions) error {
+	o.ensureFindOneOptionsInit()
+	return asOptionLister(o.FindOneOptions).List()
 }
 
 // merge MongodbrFindOneOption list and return one *MongodbrFindOneOptions
 func MergeMongodbrFindOneOption(opts ...MongodbrFindOneOption) *MongodbrFindOneOptions {
 	findOneOptions := &MongodbrFindOneOptions{
-		FindOneOptions: options.FindOne(),
+		FindOneOptions: &options.FindOneOptions{},
 	}
 	for _, eachOpt := range opts {
 		eachOpt(findOneOptions)
@@ -49,7 +54,7 @@ func MongodbrFindOneOptionWithSpecifiedFields(fieldNameList []string) MongodbrFi
 		for _, eachFieldName := range fieldNameList {
 			projection[eachFieldName] = 1
 		}
-		mfoo.SetProjection(projection)
+		mfoo.Projection = projection
 	}
 }
 
@@ -72,6 +77,6 @@ func MongodbrFindOneOptionWithFieldSort(fieldName string, isAsc bool) MongodbrFi
 			Key:   fieldName,
 			Value: sortValue,
 		})
-		mfoo.SetSort(sortV)
+		mfoo.Sort = sortV
 	}
 }

@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"go.mongodb.org/mongo-driver/event"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/event"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 var (
@@ -42,7 +42,7 @@ func IgnoreUUIDDecoder(ignore bool) {
 	_ignoreTimeDecoder = ignore
 }
 
-// 在创建Client时是否忽略time.Time的自定义解码器,(primitive.DateTime -> time.Time)
+// 在创建Client时是否忽略time.Time的自定义解码器,(bson.DateTime -> time.Time)
 func IgnoreTimeDecoder(ignore bool) {
 	_ignoreTimeDecoder = ignore
 }

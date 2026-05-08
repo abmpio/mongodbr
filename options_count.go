@@ -3,7 +3,7 @@ package mongodbr
 import (
 	"context"
 
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type MongodbrCountOptions struct {
@@ -11,12 +11,19 @@ type MongodbrCountOptions struct {
 	WithContextOptions
 }
 
+func (o *MongodbrCountOptions) List() []func(*options.CountOptions) error {
+	if o.CountOptions == nil {
+		o.CountOptions = &options.CountOptions{}
+	}
+	return asOptionLister(o.CountOptions).List()
+}
+
 type MongodbrCountOption func(*MongodbrCountOptions)
 
 // merge MongodbrCountOption list and return one *MongodbrCountOptions
 func MergeMongodbrCountOption(opts ...MongodbrCountOption) *MongodbrCountOptions {
 	o := &MongodbrCountOptions{
-		CountOptions: options.Count(),
+		CountOptions: &options.CountOptions{},
 	}
 	for _, eachOpt := range opts {
 		eachOpt(o)
