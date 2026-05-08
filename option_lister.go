@@ -6,7 +6,7 @@ type copiedOption[T any] struct {
 	value *T
 }
 
-func (o copiedOption[T]) List() []func(*T) error {
+func (o *copiedOption[T]) List() []func(*T) error {
 	if o.value == nil {
 		return nil
 	}
@@ -19,7 +19,7 @@ func (o copiedOption[T]) List() []func(*T) error {
 }
 
 func asOptionLister[T any](value *T) options.Lister[T] {
-	return copiedOption[T]{value: value}
+	return &copiedOption[T]{value: value}
 }
 
 func asOptionListers[T any](values []*T) []options.Lister[T] {
